@@ -1,0 +1,239 @@
+/***********************************************************************************
+  * Script : ctrl_burst_cas.sv *
+  * Author: Laureen Giacaman *
+  * Description: This module is responsible for controlling the CAS timing latencies
+    which are tRCD: ACT to CAS delay which only comes into play whenever a request
+    arrives for a data that is not in an actitve row. and tCCD which is the delay
+    from one column access to the next column.
+  CAS: READ OR WRITE
+
+  ERRORS: PREV REQ
+*******************************************************************/
+
+`include "ddr_pkg.pkg"
+
+module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
+
+  cas_fsm_type cas_state, cas_next_state;
+  bit clear_rc_counter, trcd_done, clear_cas_counter, tccd_done, clear_extra_counter, next_cas;
+  int rc_counter, cas_counter, extra_wait, extra_counter;
+  logic[2:0]request,  prev_req, act_cmd_trk[$];
+
+  always_ff@(posedge ddr_intf.CK_t or negedge ddr_intf.reset_n)
+    begin
+      if(!ddr_intf.reset_n)
+        begin
+          cas_state <= CAS_IDLE;
+        end
+      else
+        cas_state <= cas_next_state;
+    end
+
+
+  always_comb
+    begin
+      if(!ddr_intf.reset_n)
+        begin
+          cas_next_state <= CAS_IDLE;
+          clear_extra_counter <= 1'b1;
+          clear_rc_counter <= 1'b1;
+          clear_cas_counter <= 1'b1;
+          ctrl_intf.cas_rdy <= 1'b0;
+          ctrl_intf.cas_idle <= 1'b1;
+          prev_req <= RD_R;
+        end
+      else
+        begin
+          case(cas_state)
+            CAS_IDLE: begin
+              clear_extra_counter <= 1'b1;
+              clear_rc_counter <= 1'b1;
+          	  clear_cas_counter <= 1'b1;
+          	  ctrl_intf.cas_rdy <= 1'b0;
+              ctrl_intf.cas_idle <= 1'b1;
+
+              /* Wait for an ACTIVATE. When skipped?
+              *********CHECK BURST_ACT**************
+              */
+
+              if(ctrl_intf.act_rdy || ctrl_intf.no_act_rdy)
+                begin
+                  cas_next_state <= CAS_WAIT_ACT;
+
+                end
+            end
+
+            CAS_WAIT_ACT: begin
+              clear_rc_counter <= 1'b0;
+              if(trcd_done)
+                begin
+                  clear_rc_counter <= 1'b1;
+                  if ((request == prev_req) ||
+                      (request  == RD_R && prev_req == RDA_R) ||
+                      (request == RDA_R && prev_req == RD_R) ||
+                      (request == WR_R && prev_req == WRA_R) ||
+                      (request == WRA_R && prev_req == WR_R))
+                    begin
+                      clear_cas_counter <= 1'b0;
+                      cas_next_state <= CAS_CMD;
+                      ctrl_intf.cas_req <= request;
+                      ctrl_intf.cas_rdy <= 1'b1;
+                      prev_req <= request;
+                      clear_extra_counter <= 1'b1;
+                    end
+                  else
+                    begin
+                      cas_next_state <= CAS_EXTRA_WAIT;
+                      get_extra_wait(.prev_req(prev_req),
+                                     .req(request),
+                                     .extra_wait(extra_wait));
+                      prev_req <= request;
+                      clear_extra_counter <= 1'b0;
+                end
+            end
+            end
+
+            CAS_WAIT_CAS: begin
+
+              if(tccd_done)
+                begin
+                  ctrl_intf.cas_idle <= 1'b0;
+                  clear_cas_counter <= 1'b1;
+                  cas_next_state <= CAS_WAIT_ACT;
+                end
+            end
+
+            CAS_CMD: begin
+
+              ctrl_intf.cas_rdy <= 1'b0;
+
+              if(next_cas)
+                begin
+                  cas_next_state <= CAS_WAIT_CAS;
+                  clear_cas_counter <= 1'b0;
+                end
+
+              else
+                begin
+                  cas_next_state <= CAS_IDLE;
+                end
+            end
+
+            CAS_EXTRA_WAIT: begin
+
+            if(extra_counter == extra_wait)
+                begin
+                  clear_extra_counter <= 1'b1;
+                  cas_next_state <= CAS_CMD;
+                  ctrl_intf.cas_rdy <= 1'b1;
+                  ctrl_intf.cas_req <= request;
+                end
+
+            end
+
+          endcase
+
+        end
+
+    end
+
+  //optimize
+  always_ff@(posedge ddr_intf.CK_t)
+    begin
+      if(clear_rc_counter)
+        begin
+          rc_counter <= 0;
+          trcd_done <= 1'b0;
+        end
+      else
+        begin
+          rc_counter <= rc_counter + 1;
+          if(rc_counter == tRCD)
+            begin
+              trcd_done <= 1'b1;
+        end
+    end
+
+      if (clear_cas_counter == 1'b1)
+       	  cas_counter <= 0;
+      else
+        begin
+          cas_counter <= cas_counter + 1;
+          if(cas_counter == ctrl_intf.tCCD)
+            begin
+              tccd_done <= 1'b1;
+            end
+        end
+
+      if (clear_extra_counter == 1'b1)
+       	  extra_counter <= 0;
+      else
+        extra_counter <= extra_counter + 1;
+	end
+
+  //
+
+
+  always@(ddr_intf.reset_n, ctrl_intf.act_rdy, ctrl_intf.no_act_rdy, next_cas)
+    begin
+      if(!ddr_intf.reset_n)
+        begin
+          act_cmd_trk.delete();
+          request <= NOP_R;
+        end
+
+      else
+        begin
+          if(((ctrl_intf.act_rdy) || (ctrl_intf.no_act_rdy))
+             && ((cas_state == CAS_IDLE) || (cas_state == CAS_CMD)))
+            begin
+              request = ctrl_intf.act_rw;
+            end
+
+          if ((cas_state == CAS_CMD) && (next_cas)) begin
+             request =  act_cmd_trk.pop_front();
+
+
+           end
+    end
+    end
+
+  always @(ctrl_intf.act_rdy, ctrl_intf.no_act_rdy)
+    begin
+
+      if (((ctrl_intf.act_rdy) || (ctrl_intf.no_act_rdy))  &&
+       ((cas_state != CAS_IDLE)  && (cas_state != CAS_CMD))) begin
+        act_cmd_trk.push_back(ctrl_intf.act_rw);
+      end
+    end
+
+  always_ff@(posedge ddr_intf.CK_t)
+    begin
+      if(act_cmd_trk.size() != 0 )
+        begin
+          next_cas = 1'b1;
+        end
+      else
+        next_cas = 1'b0;
+    end
+
+
+  function void get_extra_wait(input logic[2:0] prev_req, req, output int extra_wait);
+
+    begin
+      /*Read to Write Delay */
+      if ((req  == RD && prev_req == WR) ||
+        (req == RD && prev_req == WRA) ||
+        (req == RDA && prev_req == WR) ||
+          (req == RDA && prev_req == WRA))
+        begin
+          //user programmed refer to waveform
+          extra_wait = ctrl_intf.CL + (2 * ctrl_intf.AL) + ctrl_intf.BL/2 + ctrl_intf.CWL + 2;
+        end
+      else //Write to Read
+        extra_wait = tWTR + 4;
+    end
+  endfunction
+
+
+endmodule
