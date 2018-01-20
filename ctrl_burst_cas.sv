@@ -6,7 +6,7 @@
     arrives for a data that is not in an actitve row. and tCCD which is the delay
     from one column access to the next column.
   CAS: READ OR WRITE
-
+  
   ERRORS: PREV REQ
 *******************************************************************/
 
@@ -40,7 +40,7 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
           clear_cas_counter <= 1'b1;
           ctrl_intf.cas_rdy <= 1'b0;
           ctrl_intf.cas_idle <= 1'b1;
-          prev_req <= RD_R;
+          prev_req <= RD_R; 
         end
       else
         begin
@@ -59,7 +59,7 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
               if(ctrl_intf.act_rdy || ctrl_intf.no_act_rdy)
                 begin
                   cas_next_state <= CAS_WAIT_ACT;
-
+                  
                 end
             end
 
@@ -77,7 +77,7 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
                       clear_cas_counter <= 1'b0;
                       cas_next_state <= CAS_CMD;
                       ctrl_intf.cas_req <= request;
-                      ctrl_intf.cas_rdy <= 1'b1;
+                      ctrl_intf.cas_rdy <= 1'b1; 
                       prev_req <= request;
                       clear_extra_counter <= 1'b1;
                     end
@@ -110,7 +110,7 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
               if(next_cas)
                 begin
                   cas_next_state <= CAS_WAIT_CAS;
-                  clear_cas_counter <= 1'b0;
+                  clear_cas_counter <= 1'b0; 
                 end
 
               else
@@ -120,13 +120,13 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
             end
 
             CAS_EXTRA_WAIT: begin
-
+            
             if(extra_counter == extra_wait)
                 begin
                   clear_extra_counter <= 1'b1;
                   cas_next_state <= CAS_CMD;
                   ctrl_intf.cas_rdy <= 1'b1;
-                  ctrl_intf.cas_req <= request;
+                  ctrl_intf.cas_req <= request; 
                 end
 
             end
@@ -153,17 +153,17 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
               trcd_done <= 1'b1;
         end
     end
-
+      
       if (clear_cas_counter == 1'b1)
        	  cas_counter <= 0;
       else
-        begin
+        begin 
           cas_counter <= cas_counter + 1;
           if(cas_counter == ctrl_intf.tCCD)
-            begin
-              tccd_done <= 1'b1;
+            begin 
+              tccd_done <= 1'b1; 
             end
-        end
+        end 
 
       if (clear_extra_counter == 1'b1)
        	  extra_counter <= 0;
@@ -179,7 +179,7 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
       if(!ddr_intf.reset_n)
         begin
           act_cmd_trk.delete();
-          request <= NOP_R;
+          request <= NOP_R; 
         end
 
       else
@@ -187,25 +187,25 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
           if(((ctrl_intf.act_rdy) || (ctrl_intf.no_act_rdy))
              && ((cas_state == CAS_IDLE) || (cas_state == CAS_CMD)))
             begin
-              request = ctrl_intf.act_rw;
+              request = ctrl_intf.act_rw;           
             end
-
+          
           if ((cas_state == CAS_CMD) && (next_cas)) begin
              request =  act_cmd_trk.pop_front();
-
-
+             
+              
            end
     end
-    end
-
+    end 
+  
   always @(ctrl_intf.act_rdy, ctrl_intf.no_act_rdy)
-    begin
-
-      if (((ctrl_intf.act_rdy) || (ctrl_intf.no_act_rdy))  &&
+    begin   
+      
+      if (((ctrl_intf.act_rdy) || (ctrl_intf.no_act_rdy))  && 
        ((cas_state != CAS_IDLE)  && (cas_state != CAS_CMD))) begin
-        act_cmd_trk.push_back(ctrl_intf.act_rw);
-      end
-    end
+        act_cmd_trk.push_back(ctrl_intf.act_rw);  
+      end 
+    end 
 
   always_ff@(posedge ddr_intf.CK_t)
     begin
