@@ -68,7 +68,7 @@ task verify_act;
       DUT.cmds.request <= 110;
       @(negedge ddr_intf.CK_t) tb_intf.cmd_rdy <= 1'b0;
       @(negedge ddr_intf.CK_t) tb_intf.cmd_rdy <= 1'b0;
-      repeat (5) @(posedge ddr_intf.CK_t); tb_intf.cmd_rdy <=1'b1;
+      repeat (5) @(negedge ddr_intf.CK_t); tb_intf.cmd_rdy <=1'b1;
       fork
         DUT.cmds.log_addr <= 40'b10111111111010101;
         DUT.cmds.request <= 101;
@@ -136,24 +136,6 @@ task verify_act;
   endtask
 
 
-
-
- sequence REF_S;
-   (!DUT.ddr_intf.cs_n) ##0 (DUT.ddr_intf.act_n) ##0 (!DUT.ddr_intf.RAS_n_A16)
-   ##0(!DUT.ddr_intf.CAS_n_A15) ##0 (DUT.ddr_intf.WE_n_A14) ##0  (DUT.ddr_intf.bg_addr) ##0 (DUT.ddr_intf.ba_addr) ##0 (DUT.ddr_intf.A12_BC_n) ##0 (DUT.ddr_intf.A17) ##0 (DUT.ddr_intf.A13) ##0 (DUT.ddr_intf.A11) ##0 (DUT.ddr_intf.A10_AP) ##0 (DUT.ddr_intf.A9_A0);
-
- endsequence
-
-  property REF_P;
-    @(posedge ddr_intf.CK_t) disable iff (!ddr_intf.reset_n)
-    (ctrl_intf.refresh_rdy == 1'b1) |=> REF_S;
-  endproperty
-
-  assert_refresh: assert property(REF_P)
-    //$display("Assertion Success");
-    else $error("ASSERTION FAILED at %t", $time);
-
-  */
     top DUT(.ctrl_intf(ctrl_intf),
             .ddr_intf(ddr_intf),
             .tb_intf(tb_intf));
