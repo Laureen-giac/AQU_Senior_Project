@@ -2,8 +2,8 @@
   * Script : ctrl_burst_act.sv *
   * Author: Diana Atiyeh *
   * Description: This module is responsible for controlling the ACTIVATE command
-  *This module keeps an array of open rows indexed by the bank group and bank address
-  *A row hit is an open row.
+  *This module keeps an array of open rows indexed by the bank group and bank address 
+  *A row hit is an open row. 
   *A row miss is closed row in an open bank
   *An empty page is a closed bank
 *******************************************************************/
@@ -191,14 +191,14 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
             hit =1;
             miss=0;
             empty = 1'b0;
-            $display("Page hit");
+            $display("Page hit"); 
           end
 
           else if(bank_activated[index]===15'bz) begin// bank not  activated
             miss <= 0 ;
             hit <= 0 ;
             empty = 1'b1;
-            $display("Page Empty");
+            $display("Page Empty"); 
             bank_activated[index] <=  ctrl_intf.mem_addr.row_addr ;
           end
 
@@ -207,7 +207,7 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
             miss <= 1 ;
             hit  <= 0 ;
             empty = 1'b0;
-            $display("Page miss");
+            $display("Page miss"); 
           end
         end
     end
