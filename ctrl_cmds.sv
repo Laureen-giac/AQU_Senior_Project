@@ -19,9 +19,8 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
   rw_request rw_cmd_queue[$];
   command_type cmd_out,rw_cmd_out;
   mem_addr_type phy_addr;
-  host_address log_addr; //@ bus
-  logic[2:0] request; //shouldn't be here, control bus
 
+   
 
   /*
   Asych. reset
@@ -33,33 +32,33 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
         begin
           rw_cmd_queue.delete();
         end
-    end
-
+    end 
+      
       always_comb
         begin
-          if(tb_intf.cmd_rdy) begin
-            address_decode(log_addr); //GEN; pass ref.
+          if(tb_intf.cmd_rdy && !ctrl_intf.busy) begin
+            address_decode(tb_intf.log_addr); //GEN; pass ref.
             ctrl_intf.mem_addr = host_req.phy_addr;
-            ctrl_intf.req = request;
+            ctrl_intf.req = tb_intf.request;
           end
-        end
-
+        end 
+      
       always_comb
         begin
-          if(ctrl_intf.act_rdy || ctrl_intf.no_act_rdy)
-            begin
+          if(ctrl_intf.act_rdy || ctrl_intf.no_act_rdy) 
+            begin 
               host_req.phy_addr = phy_addr;
-              host_req.request = request; //GEN
-              rw_cmd_queue.push_back(host_req);
-            end
+              host_req.request = tb_intf.request; //GEN
+              rw_cmd_queue.push_back(host_req); 
+            end 
         end
 
-  always_ff@(posedge ctrl_intf.cas_rdy)
-    begin
+  always_ff@(posedge ctrl_intf.cas_rdy) 
+    begin 
       rw_cmd_out = rw_cmd_queue.pop_front();
-      $display("Popping cmd %h", rw_cmd_out);
+      $display("Popping cmd %h", rw_cmd_out);  
     end
-
+    
   /* Generating the commands is combo logic
   */
 
@@ -76,37 +75,37 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
         cmd_out.req.phy_addr = phy_addr;
         cmd_out.req.request = 2'b00;
       end
-
-     if(ctrl_intf.cas_rdy)
-       begin
+     
+     if(ctrl_intf.cas_rdy) 
+       begin 
          if(rw_cmd_out.req.request == RD_R)
-           begin
-             cmd_out.cmd = RD;
-             cmd_out.req.phy_addr = phy_addr;
-           end
-
-         else
+           begin 
+             cmd_out.cmd = RD; 
+             cmd_out.req.phy_addr = phy_addr; 
+           end 
+         
+         else 
            if(rw_cmd_out.req.request == WR_R)
-             begin
-               cmd_out.cmd = WR;
-               cmd_out.req.phy_addr = phy_addr;
-             end
-
-         else
+             begin 
+               cmd_out.cmd = WR; 
+               cmd_out.req.phy_addr = phy_addr; 
+             end 
+         
+         else 
            if(rw_cmd_out.req.request == WRA_R)
-             begin
-               cmd_out.cmd = WRA;
-               cmd_out.req.phy_addr = phy_addr;
-             end
-
-         else
+             begin 
+               cmd_out.cmd = WRA; 
+               cmd_out.req.phy_addr = phy_addr; 
+             end 
+         
+         else 
            if(rw_cmd_out.req.request == RDA_R)
-             begin
-               cmd_out.cmd = RDA;
-               cmd_out.req.phy_addr = phy_addr;
-             end
-       end
-
+             begin 
+               cmd_out.cmd = RDA; 
+               cmd_out.req.phy_addr = phy_addr; 
+             end 
+       end 
+     
      else
        begin
          cmd_out.cmd = NOP;
