@@ -1,1 +1,1 @@
-# DDR4_Memory_Controller
+# AQU_Senior_Project
