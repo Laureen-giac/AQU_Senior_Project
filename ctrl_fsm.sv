@@ -6,17 +6,17 @@
   * and read/write.
   *** ERRORS: Sends refresh while still in RW and WAIT
   ***careful of mrs_update
-
+  
 *******************************************************************/
 
 `include "ddr_pkg.pkg"
 
-module ctrl_fsm(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
+module ctrl_fsm(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface tb_intf);
 
  ctrl_fsm_type ctrl_state, ctrl_next_state;
   bit act_done, clear_update, update_done,clear_counter;
   int refresh_counter, row_cycle, update_counter;
-  bit mrs_update;
+   
 
   /*
   Next State transition
@@ -59,11 +59,11 @@ module ctrl_fsm(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
         begin
           ctrl_intf.clear_refresh <= 1'b0;
           ctrl_intf.busy <= 1'b0;
-          if(ctrl_intf.refresh_almost || mrs_update)
-            begin
+          if(ctrl_intf.refresh_almost || tb_intf.mrs_update) 
+            begin 
               ctrl_next_state <= CTRL_WAIT;
               ctrl_intf.rw_proc  <= 1'b0; //finish current RW b4 refresh
-            end
+            end 
         end
 
       CTRL_WAIT:
@@ -93,7 +93,7 @@ module ctrl_fsm(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
               ctrl_intf.busy <= 1'b0;
             end
         end
-
+            
       CTRL_ACTIVATE:
         begin
           ctrl_intf.clear_refresh <= 1'b0;
@@ -103,9 +103,9 @@ module ctrl_fsm(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
             begin
               ctrl_next_state <= CTRL_RW;
               clear_counter <= 1'b1;
-              ctrl_intf.rw_proc <= 1'b1;
+              ctrl_intf.rw_proc <= 1'b1; 
             end
-          else if(mrs_update ||ctrl_intf.refresh_almost )
+          else if(tb_intf.mrs_update ||ctrl_intf.refresh_almost )
             begin
               ctrl_next_state <= CTRL_WAIT;
             end
@@ -117,14 +117,14 @@ module ctrl_fsm(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
           ctrl_intf.mrs_update_rdy <= 1'b0;
           ctrl_intf.busy  <= 1'b1;
           if(update_done)
-            begin
-              clear_update <= 1'b1;
+            begin 
+              clear_update <= 1'b1; 
               ctrl_intf.busy <= 1'b0;
               ctrl_next_state <= CTRL_RW;
-            end
-        end
-
-      default: ctrl_next_state <= CTRL_IDLE;
+            end 
+        end 
+      
+      default: ctrl_next_state <= CTRL_IDLE; 
 
     endcase
 
@@ -166,5 +166,6 @@ module ctrl_fsm(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
               end
         end
     end
-
+  
 endmodule
+
