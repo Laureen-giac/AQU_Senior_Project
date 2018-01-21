@@ -21,7 +21,7 @@ ctrl_fsm_type;
   parameter ADDR_WIDTH = 40; 
   parameter tIS=10 ; 
   parameter tZQ=1024 ; 
-  parameter tCKE= 4; 
+  parameter tCKE= 400000; // 500us 
   parameter tXPR=5; 
   parameter tMRD=8;
   parameter tMOD=24;
