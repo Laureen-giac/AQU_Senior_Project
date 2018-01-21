@@ -1,0 +1,40 @@
+module Clock_Generator(ddr_interface  ddr_intf); 
+
+timeunit 1ns ; 
+ timeprecision 100ps ;
+
+ 
+  //differential clock 
+  initial begin
+    ddr_intf.CK_t <=0 ;
+     forever #0.625 ddr_intf.CK_t <= !ddr_intf.CK_t ;  
+    
+  end 
+  
+  initial  begin 
+     ddr_intf.CK_c <=1 ;
+    forever #0.625 ddr_intf.CK_c <= !ddr_intf.CK_c ; 
+    
+    
+  end 
+  
+   initial begin
+    ddr_intf.CK_r <= 0 ;   
+     #0.3125 ; 
+     forever  #0.3125  ddr_intf.CK_r  <= !ddr_intf.CK_r ; 
+     
+   end
+  
+  
+  
+  
+endmodule 
+
+
+
+
+
+
+
+
+
