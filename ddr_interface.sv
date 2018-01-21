@@ -2,8 +2,9 @@ interface ddr_interface;
 
   logic reset_n;
   logic CKE;
-  bit CK_t;
-  bit CK_c;
+  logic CK_t;
+  logic CK_c;
+  logic CK_r; 
   logic[13:0] row_addr;
   logic[9:0] col_addr;
   logic cs_n;
@@ -19,6 +20,8 @@ interface ddr_interface;
   logic A11;
   logic A10_AP;
   logic[9:0] A9_A0;
-  int number; 
+  logic [DATA_WIDTH-1:0] dq;
+  logic dqs_t; 
+  logic dqs_c; 
 
 endinterface
