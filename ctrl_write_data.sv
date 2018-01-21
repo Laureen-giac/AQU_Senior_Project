@@ -31,10 +31,7 @@ module write_data(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface
     begin 
       wr_out = wr_queue.pop_front();
     end
-    
-    
-    
-    
+
   always_ff @(ddr_intf.CK_t)
      begin
         if ((ctrl_intf.wr_rdy) )begin
@@ -54,10 +51,10 @@ module write_data(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface
        repeat(rw_D.burst_length)
          begin  
            @(posedge ddr_intf.CK_r)
-           dq = rw_D.wr_data[7:0] ;
+           ddr_intf.dq = rw_D.wr_data[7:0] ;
            rw_D.wr_data=  rw_D.wr_data >> 8 ;
          end 
-     DQ_BUS = 8'bz;
+    ddr_intf.dq = 8'bz;
        
      end 
   
@@ -89,12 +86,12 @@ module write_data(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface
        repeat(rw_D.preamable-1)@(posedge ddr_intf.CK_r);// refer to jedec p.115
        repeat(rw_D.burst_length +1 )@(posedge ddr_intf.CK_r); 
        begin
-         ddr_intf.dqs_t <= !dqs_t; 
-     	 dqs_c <= !dqs_c;
+         ddr_intf.dqs_t <= !ddr_intf.dqs_t; 
+     	   ddr_intf.dqs_c <= !ddr_intf.dqs_c;
        end 
        
-       dqs_t <= 1'b1; 
-       dqs_c <= 1'b1; 
+       ddr_intf.dqs_t <= 1'b1; 
+       ddr_intf.dqs_c <= 1'b1; 
      end
   endtask 
       
