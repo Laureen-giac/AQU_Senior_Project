@@ -18,9 +18,10 @@ module ctrl_init( ctrl_interface ctrl_intf,ddr_interface ddr_intf, tb_interface 
     ctrl_intf.ini_done <= 1'b0;
     ctrl_intf.des_rdy <= 1'b0;
     ctrl_intf.zqcl_rdy <= 1'b0;
-    ctrl_intf.mrs_rdy <= 1'b1;
+    ctrl_intf.mrs_rdy <= 1'b0;
     ctrl_intf.BL = 2'b00; 
     ctrl_intf.AL = 2'b00; 
+    ctrl_intf.mode_reg <= 'x;
     
       wait(ddr_intf.reset_n);
       repeat(tCKE - tIS) @(posedge ddr_intf.CK_t);
@@ -28,13 +29,10 @@ module ctrl_init( ctrl_interface ctrl_intf,ddr_interface ddr_intf, tb_interface 
       
       repeat(tIS) @(posedge ddr_intf.CK_t); 
       ctrl_intf.des_rdy <= 1'b1; 
-      ctrl_intf.mode_reg <= 'x;
-      
-      @(posedge ddr_intf.CK_t); 
-      ctrl_intf.des_rdy <= 1'b0;
-      
+    
       repeat(tXPR)@(posedge ddr_intf.CK_t);
    	   // MR3 
+      ctrl_intf.des_rdy <= 1'b0;
       ctrl_intf.mrs_rdy<= 1'b1; 
       ctrl_intf.mode_reg <={1'b0,3'b011,1'b0,1'b0,2'b00,2'b00,3'b000,1'b0,1'b0,1'b0,1'b0,2'b00};
       
