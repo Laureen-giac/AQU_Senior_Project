@@ -17,6 +17,7 @@ ctrl_fsm_type;
   parameter MRS_WIDTH= 19 ; 
   parameter nCK = 1.25;
   parameter HALF_PERIOD = 1.25/2;
+  parameter QUAD_PERIOD = 1.25/4;
   parameter ADDR_WIDTH = 40; 
   parameter tIS=10 ; 
   parameter tZQ=1024 ; 
@@ -62,12 +63,13 @@ ctrl_fsm_type;
   /* 
   each request is associated with its address 
   */
+  
   typedef struct packed { 
     mem_addr_type phy_addr; 
     logic[2:0] request; //000: NOP; 001: RD; 010:RDA; 011:WR; 100:WRA
   } rw_request; 
 
-typedef struct packed { 
+	typedef struct packed { 
       command_name cmd; 
       rw_request req; 
     } command_type; 
@@ -86,5 +88,4 @@ endpackage
 import ddr_pkg::*;                       
 `endif
     
-
 
