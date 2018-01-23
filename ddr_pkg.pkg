@@ -6,13 +6,17 @@ package ddr_pkg;
   typedef enum logic[2:0] { CTRL_IDLE, CTRL_INIT, CTRL_REFRESH, CTRL_UPDATE,  CTRL_ACTIVATE, CTRL_RW, CTRL_WAIT} 
 ctrl_fsm_type; 
 
- typedef enum {CAS_IDLE, CAS_WAIT_ACT, CAS_EXTRA_WAIT, CAS_CMD, CAS_WAIT_CAS} cas_fsm_type;
+
+ 
  
  typedef enum logic[2:0] { ACTIVATE_IS_IDLE,  ACTIVATE_COMMAND , ACTIVATE_WAIT_STATE ,  ACTIVATE_CAS,  PRECHARGE_WAIT_DATA ,   PRECHARGE_WAIT_STATE , PRECHARGE_COMMAND ,  AFTER_PRECHARGE_CMD_DELAY} act_fsm_type; 
 
   typedef enum logic [3:0] {MRS, REF, PRE, PREA, ACT, WR, WRA, RD, RDA, NOP, DES, ZQCL } command_name; 
   
   typedef enum logic[1:0] {RW_IDLE, RW_WAIT_STATE, RW_DATA} rw_fsm_type;
+                  
+  typedef enum logic[2:0]{CAS_IDLE, CAS_WAIT_ACT, CAS_EXTRA_WAIT, CAS_CMD, CAS_WAIT_CAS, CAS_WAIT_DATA} cas_fsm_type;
+
   
   parameter MRS_WIDTH= 19 ; 
   parameter nCK = 1.25;
@@ -21,7 +25,7 @@ ctrl_fsm_type;
   parameter ADDR_WIDTH = 40; 
   parameter tIS=10 ; 
   parameter tZQ=1024 ; 
-  parameter tCKE= 400000; // 500us 
+  parameter tCKE= 4; 
   parameter tXPR=5; 
   parameter tMRD=8;
   parameter tMOD=24;
@@ -54,7 +58,7 @@ ctrl_fsm_type;
     logic [CA_WIDTH -1:0] col_addr;
    } mem_addr_type;
 
-	parameter NOP_R = 000; 
+    parameter NOP_R = 000; 
     parameter RD_R = 001; 
     parameter RDA_R = 010; 
     parameter WR_R = 011; 
@@ -68,8 +72,8 @@ ctrl_fsm_type;
     mem_addr_type phy_addr; 
     logic[2:0] request; //000: NOP; 001: RD; 010:RDA; 011:WR; 100:WRA
   } rw_request; 
-
-	typedef struct packed { 
+ 
+   typedef struct packed { 
       command_name cmd; 
       rw_request req; 
     } command_type; 
@@ -79,9 +83,7 @@ ctrl_fsm_type;
       int burst_length; 
       int preamable; 
      } wr_data_type; 
-      
-    	
-  
+
   
 endpackage 
 
