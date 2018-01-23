@@ -4,7 +4,7 @@
   * Description: This module is responsible for controlling the ACTIVATE command
   *This module keeps an array of open rows indexed by the bank group and bank address 
   *A row hit is an open row. 
-  *A row miss is closed row in an open bank
+  *A row miss is a closed row in an open bank
   *An empty page is a closed bank
 *******************************************************************/
 
@@ -21,23 +21,21 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
   logic miss;
   logic empty;
   logic clear_activate_counter ;
-  logic act_rdy, activate_ready_d; // empty page
+  logic act_rdy, activate_ready_d; 
   logic no_activate_command , no_activate_command_d;
   logic bank_init;
   logic cas_d, rw_d;
   logic [15:0 ][14:0]bank_activated ; // keep track of open banks
-  bit  [2:0]Request_Type ; // this register contains if the request read or write
+  bit  [2:0]Request_Type ; 
   int EXTRA_CYCLES  ;
-  bit act_cmd;
-
-  // this  is self defind
-  assign ctrl_intf.act_rdy = act_rdy;
-  assign ctrl_intf.no_act_rdy =  no_activate_command ;
-
-
+  
+ 
+ 
   always_comb
     begin
-      ctrl_intf.rw_idle <=  (ctrl_intf.cas_idle) && (ctrl_intf.act_idle) && (ctrl_intf.data_idle) ;
+      ctrl_intf.rw_idle <=  (ctrl_intf.cas_idle) && (ctrl_intf.act_idle) && (ctrl_intf.data_idle);
+      ctrl_intf.no_act_rdy <= no_activate_command; 
+      ctrl_intf.act_rdy <= act_rdy;
     end
 
 
@@ -77,7 +75,7 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
             ctrl_intf.act_idle <= 1'b1;
             bank_init <= 0 ;
 
-            if((tb_intf.cmd_rdy) || (ctrl_intf.rw_proc)) begin
+            if((tb_intf.cmd_rdy) && (ctrl_intf.rw_proc)) begin
               next_activate_state <=  ACTIVATE_WAIT_STATE ;
               check_for_activated_bank ();
             end
@@ -91,7 +89,6 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
             ctrl_intf.pre_rdy <= 1'b0 ;
 
             if( (activate_counter== tRRD)  && ( hit ) && (!miss)) begin
-              // in this case not activate command needed
               next_activate_state <=  ACTIVATE_CAS ;
               ctrl_intf.act_rw  <= ctrl_intf.req;
               no_activate_command <= 1'b1;
@@ -142,7 +139,6 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
           PRECHARGE_WAIT_STATE : begin
             clear_activate_counter <= 1'b0;
             RW_Extra_Cycles () ;
-            // we have to decide if the last cas command was read or write
             if(activate_counter == EXTRA_CYCLES) begin
               next_activate_state <=  PRECHARGE_COMMAND;
               ctrl_intf.pre_rdy <= 1;
@@ -191,14 +187,12 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
             hit =1;
             miss=0;
             empty = 1'b0;
-            $display("Page hit"); 
           end
 
           else if(bank_activated[index]===15'bz) begin// bank not  activated
             miss <= 0 ;
             hit <= 0 ;
-            empty = 1'b1;
-            $display("Page Empty"); 
+            empty = 1'b1; 
             bank_activated[index] <=  ctrl_intf.mem_addr.row_addr ;
           end
 
@@ -206,8 +200,7 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
             bank_activated[index] <=  ctrl_intf.mem_addr.row_addr ;
             miss <= 1 ;
             hit  <= 0 ;
-            empty = 1'b0;
-            $display("Page miss"); 
+            empty = 1'b0; 
           end
         end
     end
