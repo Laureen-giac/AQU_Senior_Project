@@ -1,4 +1,3 @@
-//careful of rw_idle
 `include "ddr_pkg.pkg"
 
 interface ctrl_interface;
