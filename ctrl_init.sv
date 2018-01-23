@@ -7,9 +7,8 @@
 `include "ddr_pkg.pkg" 
 
 
-module ctrl_init( ctrl_interface ctrl_intf,ddr_interface ddr_intf, tb_interface tb_intf) ;
-
-
+module ctrl_init( ctrl_interface ctrl_intf,ddr_interface ddr_intf, tb_interface tb_intf);
+  
   event config_done; 
   
   always@(ddr_intf.reset_n) begin
@@ -28,7 +27,7 @@ module ctrl_init( ctrl_interface ctrl_intf,ddr_interface ddr_intf, tb_interface 
     
     wait(ddr_intf.reset_n);
     repeat(tCKE - tIS) @(posedge ddr_intf.CK_t);
-    ddr_intf.CKE <= 1; 
+    ddr_intf.CKE <= 1'b1; 
     
     repeat(tIS) @(posedge ddr_intf.CK_t); 
     ctrl_intf.des_rdy <= 1'b1; 
@@ -48,7 +47,7 @@ module ctrl_init( ctrl_interface ctrl_intf,ddr_interface ddr_intf, tb_interface 
     ctrl_intf.mode_reg<= 'x;
     
     //MR6
-    repeat(tMRD)@(posedge ddr_intf.CK_t );
+    repeat(tMRD)@(posedge ddr_intf.CK_t);
     ctrl_intf.des_rdy <= 1'b0; 
     ctrl_intf.mrs_rdy <= 1'b1; 
     ctrl_intf.mode_reg <={1'b0,3'b110, 1'b0,1'b0,tb_intf.tCCD,1'b0,1'b0,1'b0,1'b0,6'b000000}; 
@@ -92,7 +91,7 @@ module ctrl_init( ctrl_interface ctrl_intf,ddr_interface ddr_intf, tb_interface 
     ctrl_intf.des_rdy <= 1'b1;
     
     //MR1
-    repeat(tMRD)@(posedge ddr_intf.CK_t );
+    repeat(tMRD)@(posedge ddr_intf.CK_t);
     ctrl_intf.des_rdy <= 1'b0; 
     ctrl_intf.mrs_rdy <= 1'b1;  
     ctrl_intf.mode_reg<={1'b0,3'b001,1'b0,1'b0,1'b0,1'b0,3'b000,1'b0,2'b00,tb_intf.AL,2'b00,1'b0 };
@@ -103,19 +102,19 @@ module ctrl_init( ctrl_interface ctrl_intf,ddr_interface ddr_intf, tb_interface 
     ctrl_intf.mrs_rdy <= 1'b0; 
     
     //MR0
-    repeat(tMRD) @(posedge ddr_intf.CK_t ); 
+    repeat(tMRD) @(posedge ddr_intf.CK_t); 
     ctrl_intf.des_rdy <= 1'b0; 
     ctrl_intf.mrs_rdy <= 1'b1;  
     ctrl_intf.mode_reg<={1'b0,3'b000,1'b0,1'b0,1'b0,3'b000,1'b0,1'b0,tb_intf.CL,1'b0,1'b0, tb_intf.BL };
     
-    @(posedge ddr_intf.CK_t );
+    @(posedge ddr_intf.CK_t);
     ctrl_intf.mrs_rdy <= 1'b0; 
     ctrl_intf.des_rdy <= 1'b1; 
     ctrl_intf.mode_reg<= 'x; 
     
-    repeat(tMOD) @(posedge ddr_intf.CK_t );
-    ctrl_intf.des_rdy <=0;
-    ctrl_intf.zqcl_rdy <=1'b1;
+    repeat(tMOD) @(posedge ddr_intf.CK_t);
+    ctrl_intf.des_rdy <= 1'b0;
+    ctrl_intf.zqcl_rdy <= 1'b1;
     @(posedge ddr_intf.CK_t )
     ctrl_intf.des_rdy <= 1'b1; 
     ctrl_intf.zqcl_rdy <=1'b0;
@@ -127,3 +126,5 @@ module ctrl_init( ctrl_interface ctrl_intf,ddr_interface ddr_intf, tb_interface 
     endtask 
   
 endmodule 
+
+
