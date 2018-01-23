@@ -1,9 +1,9 @@
-/***********************************************************************************
- * Script : ctrl_init.sv *
- * Author: Diana Atiyeh *
- * Description: This module is responsible for controlling the reset and      
-   power up initialization sequence of the DDR4 memory. 
-***********************************************************************************/
+/**********************************************************************************
+  * Script : ctrl_init.sv *
+  * Author: Diana Atiyeh *
+  * Description: This module is responsible for controlling the reset and   
+  * power up initialization sequence of the DDR4 memory. 
+*********************************************************************************/
 
 `include "ddr_pkg.pkg" 
 
@@ -51,7 +51,7 @@ module ctrl_init( ctrl_interface ctrl_intf,ddr_interface ddr_intf, tb_interface 
     repeat(tMRD)@(posedge ddr_intf.CK_t);
     ctrl_intf.des_rdy <= 1'b0; 
     ctrl_intf.mrs_rdy <= 1'b1; 
-    ctrl_intf.mode_reg <={1'b0,3'b110, 1'b0,1'b0,tb_intf.tCCD,1'b0,1'b0,1'b0,1'b0,6'b000000}; 
+    ctrl_intf.mode_reg <={1'b0,3'b110, 1'b0,1'b0,3'b001,1'b0,1'b0,1'b0,1'b0,6'b000000}; 
     
     @(posedge ddr_intf.CK_t) ;
     ctrl_intf.mrs_rdy <= 1'b0; 
@@ -127,5 +127,3 @@ module ctrl_init( ctrl_interface ctrl_intf,ddr_interface ddr_intf, tb_interface 
     endtask 
   
 endmodule 
-
-
