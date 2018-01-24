@@ -9,13 +9,11 @@ class driver;
   
   
   function new(input mailbox gen2drv, 
-               input virtual tb_interface tb_intf, 
-               input virtual ddr_interface ddr_intf); 
+               input virtual tb_interface tb_intf); 
     
     this.gen2drv = gen2drv; 
     this.tb_intf = tb_intf; 
-    this.ddr_intf = ddr_intf; 
-    
+ 
   endfunction 
   
   /* Get requests from generator, and send to DUT
