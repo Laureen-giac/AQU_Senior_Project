@@ -36,16 +36,12 @@ class driver;
     forever
       begin 
         gen2drv.get(gen_req);
-        @(negedge ddr_intf.CK_t);
-        @(negedge ddr_intf.CK_t)
-        tb_intf.cmd_rdy<= 1'b1;
+        wait(tb_intf.cmd_rdy); 
         tb_intf.log_addr <= gen_req.log_addr;
         tb_intf.request <= gen_req.request;
         if(gen_req.request == WR)
           tb_intf.wr_data <= gen_req.wr_data; 
         else tb_intf.wr_data <= 'z; 
-        @(negedge ddr_intf.CK_t)
-        tb_intf.cmd_rdy <= 1'b0;
         $display("-----------------------------"); 
         $display("@%0t:DRIVER%0d", $time, no_trans); 
         $display("Host Address:%0h\nRequest:%0h\nWrite Data:%0h\n",gen_req.log_addr, gen_req.request, gen_req.wr_data);
