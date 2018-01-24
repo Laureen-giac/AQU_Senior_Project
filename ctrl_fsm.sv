@@ -127,9 +127,8 @@ module ctrl_fsm(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface t
 
     endcase
 
-
-	/* Counter for keeping track of row cycle (ACTIVATION + PRECHARGE)
-    */
+ /* Counter for keeping track of row cycle (ACTIVATION + PRECHARGE)
+ */
   always_ff@(posedge ddr_intf.CK_t)
     begin
       if(clear_counter)
