@@ -36,7 +36,7 @@ class driver;
         wait(tb_intf.cmd_rdy); 
         tb_intf.log_addr <= gen_req.log_addr;
         tb_intf.request <= gen_req.request;
-        if(gen_req.request == WR)
+        if(gen_req.request == WR_R || gen_req.request == WRA_R)
           tb_intf.wr_data <= gen_req.wr_data; 
         else tb_intf.wr_data <= 'z; 
         $display("-----------------------------"); 
