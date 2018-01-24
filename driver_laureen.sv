@@ -31,7 +31,6 @@ class driver;
     tb_intf.CWL <= '0;
     tb_intf.RD_PRE <= '0;
     tb_intf.WR_PRE <= '0;
-    tb_intf.cmd_rdy <= 1'b0;
     
     forever
       begin 
