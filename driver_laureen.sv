@@ -23,7 +23,7 @@ class driver;
     tb_intf.rd_data <=  '0; 
     tb_intf.wr_data <=  'z; 
     tb_intf.log_addr <= 'x; 
-    tb_intf.request <= NOP;
+    tb_intf.request <= NOP_R;
     tb_intf.CL <= '0;
     tb_intf.AL <= '0;
     tb_intf.CWL <= '0;
