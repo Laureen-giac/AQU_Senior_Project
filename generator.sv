@@ -1,4 +1,4 @@
-class gen; 
+class generator; 
   
   host_request gen_req;
   mailbox gen2driv; 
