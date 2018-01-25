@@ -1,5 +1,3 @@
-`include "host_request.sv"
-
 class gen; 
   
   host_request gen_req;
