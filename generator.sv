@@ -1,27 +1,23 @@
-`include "host_request.sv"
-
 class generator; 
   
-  host_request gen_req;
-  mailbox gen2driv; 
-  int no_reqs; 
+  host_req gen_req;
+  mailbox gen2drv; 
+  
   int trans = 0; 
   
- function new(input mailbox gen2driv,  
-               input  no_reqs);
-   this.gen2driv = gen2driv;  
-   this.no_reqs = no_reqs;
+ function new(input mailbox gen2drv);
+   this.gen2drv = gen2drv;  
  endfunction
   
-  task run; 
+  task run(input int no_reqs); 
     repeat(no_reqs) 
-      begin 
-        gen_req = new(); 
+      begin   
+        gen_req = new();
         if(gen_req.randomize()) begin 
           $display("-----------------------------"); 
           $display("@%0t:Gen%0d", $time, trans); 
-          $display("Host Address:%0h\nRequest:%0h\nWrite Data:%0h\n",gen_req.address, gen_req.request, gen_req.wr_data);
-          gen2driv.put(gen_req); 
+          $display("Host Address:%0h\nRequest:%0h\nWrite Data:%0h\n",gen_req.log_addr, gen_req.request, gen_req.wr_data);
+          gen2drv.put(gen_req); 
           trans++;
         end 
         else 
@@ -29,7 +25,8 @@ class generator;
             $fatal("Randomization failed");
           end 
       end 
-  endtask 
+  endtask
   
 endclass 
+
   
