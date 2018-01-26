@@ -40,7 +40,7 @@ class driver;
         `DRIVER.request <= gen_req.request;
         //if(gen_req.request == WR_R || gen_req.request == WRA_R)
         `DRIVER.wr_data <= gen_req.wr_data; 
-        //  else `DRIVER.wr_data <= 'z; 
+        //else `DRIVER.wr_data <= 'z; 
         $display("-----------------------------"); 
         $display("@%0t:DRIVER%0d", $time, no_trans); 
         $display("Host Address:%0h\nRequest:%0h\nWrite Data:%0h\n",gen_req.log_addr, gen_req.request, gen_req.wr_data);
