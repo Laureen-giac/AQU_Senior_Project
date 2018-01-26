@@ -1,0 +1,63 @@
+
+
+class monitor ;
+  
+  mailbox mon2check ;
+  
+  virtual tb_interface tb_intf ; 
+  
+  function new ( input mailbox  basic_mail_box, input virtual tb_interface tb_intf) ;
+    
+    this.mon2check= basic_mail_box ; 
+    
+    this.tb_intf= tb_intf ; 
+    
+  endfunction 
+  
+  
+  
+  
+  task monitor_now ;
+    forever begin 
+      Host_Request sampled_req ; 
+      
+      sampled_req = new() ;
+      
+      @(posedge tb_intf.Monitor.clock) ;
+      wait(tb_intf.Monitor.monitor_cb.act_cmd)// for now ...
+      // we should monitor the read data 
+      
+      	sampled_req.address=tb_intf.Monitor.monitor_cb.log_addr ;
+        sampled_req.data=tb_intf.Monitor.monitor_cb.gen_rw_Data; 
+        sampled_req.req=tb_intf.Monitor.monitor_cb.request;
+        //sampled_req.data=tb_intf.Monitor.monitor_cb.read_data; 
+        sampled_req.CWL=tb_intf.Monitor.monitor_cb.CWL; 
+        sampled_req.CL=tb_intf.Monitor.monitor_cb.CL; 
+        sampled_req.BL=tb_intf.Monitor.monitor_cb.BL; 
+        sampled_req.AL=tb_intf.Monitor.monitor_cb.AL; 
+        sampled_req.RD_PRE=tb_intf.Monitor.monitor_cb.RD_PRE;
+        sampled_req.WR_PRE=tb_intf.Monitor.monitor_cb.WR_PRE;
+     
+     //  $display("-----------------------------");
+   // $display(" tb_intf.log_addr:%0h \ntb_intf.request:%0h\nWrite Data:%0h \n", sampled_req.address,  sampled_req.req,  sampled_req.data);
+         
+      
+      
+        mon2check.put(sampled_req);
+      
+      
+      
+        
+      
+      
+      
+      
+    end 
+    
+    
+  endtask 
+  
+  
+  
+  
+endclass 
