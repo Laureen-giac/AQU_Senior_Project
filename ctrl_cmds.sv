@@ -1,12 +1,14 @@
 /***********************************************************************************
- * Script : ctrl_cmds.sv *
- * Author: Laureen Giacaman *
- * Description: This module is responsible for programming the DDR4 with 	
-  the set of commands from JEDEC sec4.1 pg: 24.
-  The supported commands should be: MRS, REF, PRE(PREA*),ACT,WR(WRA*),RD(RDA*), NOP, DES, ZQCL
- **ERRORS: DES is the default command:::FIXED
- **careful of NOP::FIXED, @ decode:: PENDING
-**********************************************************************************/
+  * Script : ctrl_cmds.sv *
+  * Author: Laureen Giacaman *
+  * Description: This module is responsible for programming the DDR4 with 	
+  ->the set of commands from JEDEC sec4.1 pg: 24.
+  ->The supported commands should be: MRS, REF, PRE(PREA*),ACT,WR(WRA*),
+  RD(RDA*), NOP, DES, ZQCL
+
+  **ERRORS: DES is the default command:::FIXED
+  **careful of NOP::FIXED, @ decode
+***********************************************************************************/
 
 
 `include "ddr_pkg.pkg"
@@ -55,7 +57,7 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
   always_ff@(posedge ctrl_intf.cas_rdy) 
     begin 
       rw_cmd_out = rw_cmd_queue.pop_front();
-      $display("Popping cmd %h", rw_cmd_out);  
+        
     end
     
   /* Generating the commands is combo logic
@@ -161,28 +163,28 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
         ||(ctrl_intf.pre_rdy)
         ||(ctrl_intf.zqcl_rdy)
           ||(ctrl_intf.des_rdy))
-
+        
         begin
           case(cmd_out.cmd)
             ACT: begin
               ddr_intf.cs_n <= 1'b0;
-          	  ddr_intf.act_n <= 1'b0;
-          	  ddr_intf.RAS_n_A16 <= 1'b1;
-          	  ddr_intf.CAS_n_A15 <= 1'b1;
-          	  ddr_intf.WE_n_A14 <= 1'b1;
-          	  ddr_intf.bg_addr <= cmd_out.req.phy_addr.bg_addr;
-          	  ddr_intf.ba_addr <= cmd_out.req.phy_addr.ba_addr;
-          	  ddr_intf.A12_BC_n <= cmd_out.req.phy_addr.row_addr[12];
-          	  ddr_intf.A17 <= 1'b1;
-          	  ddr_intf.A13 <= cmd_out.req.phy_addr.row_addr[13];
-          	  ddr_intf.A11 <= cmd_out.req.phy_addr.row_addr[11];
-          	  ddr_intf.A10_AP <= cmd_out.req.phy_addr.row_addr[10];
-          	  ddr_intf.A9_A0 <= cmd_out.req.phy_addr.row_addr[9:0];
+              ddr_intf.act_n <= 1'b0;
+              ddr_intf.RAS_n_A16 <= cmd_out.req.phy_addr.row_addr[16];;
+              ddr_intf.CAS_n_A15 <= cmd_out.req.phy_addr.row_addr[15];
+              ddr_intf.WE_n_A14 <= cmd_out.req.phy_addr.row_addr[14];;
+              ddr_intf.bg_addr <= cmd_out.req.phy_addr.bg_addr;
+              ddr_intf.ba_addr <= cmd_out.req.phy_addr.ba_addr;
+              ddr_intf.A12_BC_n <= cmd_out.req.phy_addr.row_addr[12];
+              ddr_intf.A17 <= cmd_out.req.phy_addr.row_addr[17];;
+              ddr_intf.A13 <= cmd_out.req.phy_addr.row_addr[13];
+              ddr_intf.A11 <= cmd_out.req.phy_addr.row_addr[11];
+              ddr_intf.A10_AP <= cmd_out.req.phy_addr.row_addr[10];
+              ddr_intf.A9_A0 <= cmd_out.req.phy_addr.row_addr[9:0];
             end
 
             RD: begin
-              ddr_intf.cs_n <= 1'b0;
-              ddr_intf.act_n <= 1'b1;
+                  ddr_intf.cs_n <= 1'b0;
+                  ddr_intf.act_n <= 1'b1;
           	  ddr_intf.RAS_n_A16 <= 1'b1;
          	  ddr_intf.CAS_n_A15 <= 1'b0;
           	  ddr_intf.WE_n_A14 <= 1'b0;
@@ -195,186 +197,183 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
           	  ddr_intf.A10_AP <= 1'b0;
           	  ddr_intf.A9_A0 <= cmd_out.req.phy_addr.col_addr[9:0];
             end
-
-          RDA: begin
-             ddr_intf.cs_n <= 1'b0;
-          	 ddr_intf.act_n <= 1'b1;
-          	 ddr_intf.RAS_n_A16 <= 1'b1;
-          	 ddr_intf.CAS_n_A15 <= 1'b0;
-          	 ddr_intf.WE_n_A14 <= 1'b0;
-          	 ddr_intf.bg_addr <= cmd_out.req.phy_addr.bg_addr;
-          	 ddr_intf.ba_addr <= cmd_out.req.phy_addr.ba_addr;
-          	 ddr_intf.A12_BC_n <= 1'b0;
-          	 ddr_intf.A17 <= 1'b1;
-          	 ddr_intf.A13 <= 1'b1;
-          	 ddr_intf.A11 <= 1'b1;
-          	 ddr_intf.A10_AP <= 1'b1;
-          	 ddr_intf.A9_A0 <= cmd_out.req.phy_addr.col_addr[9:0];
-        	end
-
-         WR: begin
-           ddr_intf.cs_n <= 1'b0;
-           ddr_intf.act_n <= 1'b1;
-           ddr_intf.RAS_n_A16 <= 1'b1;
-           ddr_intf.CAS_n_A15 <= 1'b0;
-           ddr_intf.WE_n_A14 <= 1'b0;
-           ddr_intf.bg_addr <= cmd_out.req.phy_addr.bg_addr;
-           ddr_intf.ba_addr <= cmd_out.req.phy_addr.ba_addr;
-           ddr_intf.A12_BC_n <= 1'b1;
-           ddr_intf.A17 <= 1'b1;
-           ddr_intf.A13 <= 1'b1;
-           ddr_intf.A11 <= 1'b1;
-           ddr_intf.A10_AP <= 1'b0;
-           ddr_intf.A9_A0 <= cmd_out.req.phy_addr.col_addr[9:0];
-          end
-
-        WRA: begin
-           ddr_intf.cs_n <= 1'b0;
-           ddr_intf.act_n <= 1'b1;
-           ddr_intf.RAS_n_A16 <= 1'b1;
-      	   ddr_intf.CAS_n_A15 <= 1'b0;
-           ddr_intf.WE_n_A14 <= 1'b0;
-           ddr_intf.bg_addr <= cmd_out.req.phy_addr.bg_addr;
-           ddr_intf.ba_addr <= cmd_out.req.phy_addr.ba_addr;
-           ddr_intf.A12_BC_n <= 1'b1;
-           ddr_intf.A17 <= 1'b1;
-           ddr_intf.A13 <= 1'b1;
-           ddr_intf.A11 <= 1'b1;
-           ddr_intf.A10_AP <= 1'b1;
-           ddr_intf.A9_A0 <= cmd_out.req.phy_addr.col_addr[9:0];
-          end
-
-
-        REF: begin
-           ddr_intf.cs_n <= 1'b0;
-           ddr_intf.act_n <= 1'b1;
-           ddr_intf.RAS_n_A16 <= 1'b0;
-           ddr_intf.CAS_n_A15 <= 1'b0;
-    	   ddr_intf.WE_n_A14 <= 1'b1;
-           ddr_intf.bg_addr <= '1;
-           ddr_intf.ba_addr <= '1;
-           ddr_intf.A12_BC_n <= 1'b1;
-           ddr_intf.A17 <= 1'b1;
-           ddr_intf.A13 <= 1'b1;
-           ddr_intf.A11 <= 1'b1;
-           ddr_intf.A10_AP <= 1'b1;
-           ddr_intf.A9_A0 <= '1;
-          end
-
-        MRS: begin
-           ddr_intf.cs_n <= 1'b0;
-           ddr_intf.act_n <= 1'b1;
-           ddr_intf.RAS_n_A16 <= 1'b0;
-           ddr_intf.CAS_n_A15 <= 1'b0;
-           ddr_intf.WE_n_A14 <= 1'b0;
-           ddr_intf.bg_addr <= cmd_out.req.phy_addr.bg_addr;
-           ddr_intf.ba_addr <= cmd_out.req.phy_addr.ba_addr;
-           ddr_intf.A12_BC_n <= cmd_out.req.phy_addr.row_addr[12];
-           ddr_intf.A17 <= cmd_out.req.phy_addr.row_addr[13];
-           ddr_intf.A13 <= cmd_out.req.phy_addr.row_addr[13];
-           ddr_intf.A11 <= cmd_out.req.phy_addr.row_addr[11];
-           ddr_intf.A10_AP <= cmd_out.req.phy_addr.row_addr[10];
-           ddr_intf.A9_A0 <= cmd_out.req.phy_addr.row_addr[9:0];
-          end
-
-        PRE: begin
-           ddr_intf.cs_n <= 1'b0;
-           ddr_intf.act_n <= 1'b1;
-           ddr_intf.RAS_n_A16 <= 1'b0;
-           ddr_intf.CAS_n_A15 <= 1'b1;
-           ddr_intf.WE_n_A14 <= 1'b0;
-           ddr_intf.bg_addr <= cmd_out.req.phy_addr.bg_addr;
-           ddr_intf.ba_addr <= cmd_out.req.phy_addr.ba_addr;
-           ddr_intf.A12_BC_n <= 1'b1;
-           ddr_intf.A17 <= 1'b1;
-           ddr_intf.A13 <= 1'b1;
-           ddr_intf.A11 <= 1'b1;
-           ddr_intf.A10_AP <= 1'b0;
-           ddr_intf.A9_A0 <= '1;
-          end
-
-        PREA: begin
-            ddr_intf.cs_n <= 1'b0;
-            ddr_intf.act_n <= 1'b1;
-            ddr_intf.RAS_n_A16 <= 1'b0;
-            ddr_intf.CAS_n_A15 <= 1'b1;
-            ddr_intf.WE_n_A14 <= 1'b0;
-            ddr_intf.bg_addr <= '1;
-            ddr_intf.ba_addr <= '1;
-            ddr_intf.A12_BC_n <= 1'b1;
-            ddr_intf.A17 <= 1'b1;
-            ddr_intf.A13 <= 1'b1;
-            ddr_intf.A11 <= 1'b1;
-            ddr_intf.A10_AP <= 1'b1;
-            ddr_intf.A9_A0 <= '1;
-           end
-
-        DES: begin
-           ddr_intf.cs_n <= 1'b1;
-           ddr_intf.act_n <= 1'bx;
-           ddr_intf.RAS_n_A16 <= 1'bx;
-           ddr_intf.CAS_n_A15 <= 1'bx;
-           ddr_intf.WE_n_A14 <= 1'bx;
-           ddr_intf.bg_addr <= 2'bxx;
-           ddr_intf.ba_addr <= 2'bxx;
-           ddr_intf.A12_BC_n <= 1'bx;
-           ddr_intf.A17 <= 1'bx;
-           ddr_intf.A13 <= 1'bx;
-           ddr_intf.A11 <= 1'bx;
-           ddr_intf.A10_AP <= 1'bx;
-           ddr_intf.A9_A0 <= 'x;
-          end
-
-        ZQCL: begin
-           ddr_intf.cs_n <= 1'b0;
-           ddr_intf.act_n <= 1'b1;
-           ddr_intf.RAS_n_A16 <= 1'b1;
-           ddr_intf.CAS_n_A15 <= 1'b1;
-           ddr_intf.WE_n_A14 <= 1'b0;
-           ddr_intf.bg_addr <= 2'b11;
-           ddr_intf.ba_addr <= 2'b11;
-           ddr_intf.A12_BC_n <= 1'b1;
-           ddr_intf.A17 <= 1'b1;
-           ddr_intf.A13 <= 1'b1;
-           ddr_intf.A11 <= 1'b1;
-           ddr_intf.A10_AP <= 1'b1;
-           ddr_intf.A9_A0 <= '1;
-          end
-
-       NOP: begin
-		  ddr_intf.cs_n <= 1'b0;
-          ddr_intf.act_n <= 1'b1;
-          ddr_intf.RAS_n_A16 <= 1'b1;
-          ddr_intf.CAS_n_A15 <= 1'b1;
-          ddr_intf.WE_n_A14 <= 1'b1;
-          ddr_intf.bg_addr <= 2'b11;
-          ddr_intf.ba_addr <= 2'b11;
-          ddr_intf.A12_BC_n <= 1'b1;
-          ddr_intf.A17 <= 1'b1;
-          ddr_intf.A13 <= 1'b1;
-          ddr_intf.A11 <= 1'b1;
-          ddr_intf.A10_AP <= 1'b1;
-          ddr_intf.A9_A0 <= '1;
-         end
-
-
-      default: begin
-          ddr_intf.cs_n <= 1'b0;
-          ddr_intf.act_n <= 1'b1;
-          ddr_intf.RAS_n_A16 <= 1'b1;
-          ddr_intf.CAS_n_A15 <= 1'b1;
-          ddr_intf.WE_n_A14 <= 1'b1;
-          ddr_intf.bg_addr <= 2'b11;
-          ddr_intf.ba_addr <= 2'b11;
-          ddr_intf.A12_BC_n <= 1'b1;
-          ddr_intf.A17 <= 1'b1;
-          ddr_intf.A13 <= 1'b1;
-          ddr_intf.A11 <= 1'b1;
-          ddr_intf.A10_AP <= 1'b1;
-          ddr_intf.A9_A0 <= '1;
-         end
-
-     endcase
+            
+            RDA: begin
+              ddr_intf.cs_n <= 1'b0;
+          	  ddr_intf.act_n <= 1'b1;
+          	  ddr_intf.RAS_n_A16 <= 1'b1;
+          	  ddr_intf.CAS_n_A15 <= 1'b0;
+          	  ddr_intf.WE_n_A14 <= 1'b0;
+          	  ddr_intf.bg_addr <= cmd_out.req.phy_addr.bg_addr;
+          	  ddr_intf.ba_addr <= cmd_out.req.phy_addr.ba_addr;
+          	  ddr_intf.A12_BC_n <= 1'b0;
+          	  ddr_intf.A17 <= 1'b1;
+          	  ddr_intf.A13 <= 1'b1;
+          	  ddr_intf.A11 <= 1'b1;
+          	  ddr_intf.A10_AP <= 1'b1;
+          	  ddr_intf.A9_A0 <= cmd_out.req.phy_addr.col_addr[9:0];
+            end
+            
+            WR: begin
+              ddr_intf.cs_n <= 1'b0;
+              ddr_intf.act_n <= 1'b1;
+              ddr_intf.RAS_n_A16 <= 1'b1;
+              ddr_intf.CAS_n_A15 <= 1'b0;
+              ddr_intf.WE_n_A14 <= 1'b0;
+              ddr_intf.bg_addr <= cmd_out.req.phy_addr.bg_addr;
+              ddr_intf.ba_addr <= cmd_out.req.phy_addr.ba_addr;
+              ddr_intf.A12_BC_n <= 1'b1;
+              ddr_intf.A17 <= 1'b1;
+              ddr_intf.A13 <= 1'b1;
+              ddr_intf.A11 <= 1'b1;
+              ddr_intf.A10_AP <= 1'b0;
+              ddr_intf.A9_A0 <= cmd_out.req.phy_addr.col_addr[9:0];
+            end
+            
+            WRA: begin
+              ddr_intf.cs_n <= 1'b0;
+              ddr_intf.act_n <= 1'b1;
+              ddr_intf.RAS_n_A16 <= 1'b1;
+      	      ddr_intf.CAS_n_A15 <= 1'b0;
+              ddr_intf.WE_n_A14 <= 1'b0;
+              ddr_intf.bg_addr <= cmd_out.req.phy_addr.bg_addr;
+              ddr_intf.ba_addr <= cmd_out.req.phy_addr.ba_addr;
+              ddr_intf.A12_BC_n <= 1'b1;
+              ddr_intf.A17 <= 1'b1;
+              ddr_intf.A13 <= 1'b1;
+              ddr_intf.A11 <= 1'b1;
+              ddr_intf.A10_AP <= 1'b1;
+              ddr_intf.A9_A0 <= cmd_out.req.phy_addr.col_addr[9:0];
+            end
+            
+            REF: begin
+              ddr_intf.cs_n <= 1'b0;
+              ddr_intf.act_n <= 1'b1;
+              ddr_intf.RAS_n_A16 <= 1'b0;
+              ddr_intf.CAS_n_A15 <= 1'b0;
+    	      ddr_intf.WE_n_A14 <= 1'b1;
+              ddr_intf.bg_addr <= '1;
+              ddr_intf.ba_addr <= '1;
+              ddr_intf.A12_BC_n <= 1'b1;
+              ddr_intf.A17 <= 1'b1;
+              ddr_intf.A13 <= 1'b1;
+              ddr_intf.A11 <= 1'b1;
+              ddr_intf.A10_AP <= 1'b1;
+              ddr_intf.A9_A0 <= '1;
+            end
+            
+            MRS: begin
+              ddr_intf.cs_n <= 1'b0;
+              ddr_intf.act_n <= 1'b1;
+              ddr_intf.RAS_n_A16 <= 1'b0;
+              ddr_intf.CAS_n_A15 <= 1'b0;
+              ddr_intf.WE_n_A14 <= 1'b0;
+              ddr_intf.bg_addr <= cmd_out.req.phy_addr.bg_addr;
+              ddr_intf.ba_addr <= cmd_out.req.phy_addr.ba_addr;
+              ddr_intf.A12_BC_n <= cmd_out.req.phy_addr.row_addr[12];
+              ddr_intf.A17 <= cmd_out.req.phy_addr.row_addr[13];
+              ddr_intf.A13 <= cmd_out.req.phy_addr.row_addr[13];
+              ddr_intf.A11 <= cmd_out.req.phy_addr.row_addr[11];
+              ddr_intf.A10_AP <= cmd_out.req.phy_addr.row_addr[10];
+              ddr_intf.A9_A0 <= cmd_out.req.phy_addr.row_addr[9:0];
+            end
+            
+            PRE: begin
+              ddr_intf.cs_n <= 1'b0;
+              ddr_intf.act_n <= 1'b1;
+              ddr_intf.RAS_n_A16 <= 1'b0;
+              ddr_intf.CAS_n_A15 <= 1'b1;
+              ddr_intf.WE_n_A14 <= 1'b0;
+              ddr_intf.bg_addr <= cmd_out.req.phy_addr.bg_addr;
+              ddr_intf.ba_addr <= cmd_out.req.phy_addr.ba_addr;
+              ddr_intf.A12_BC_n <= 1'b1;
+              ddr_intf.A17 <= 1'b1;
+              ddr_intf.A13 <= 1'b1;
+              ddr_intf.A11 <= 1'b1;
+              ddr_intf.A10_AP <= 1'b0;
+              ddr_intf.A9_A0 <= '1;
+            end
+            
+            PREA: begin
+              ddr_intf.cs_n <= 1'b0;
+              ddr_intf.act_n <= 1'b1;
+              ddr_intf.RAS_n_A16 <= 1'b0;
+              ddr_intf.CAS_n_A15 <= 1'b1;
+              ddr_intf.WE_n_A14 <= 1'b0;
+              ddr_intf.bg_addr <= '1;
+              ddr_intf.ba_addr <= '1;
+              ddr_intf.A12_BC_n <= 1'b1;
+              ddr_intf.A17 <= 1'b1;
+              ddr_intf.A13 <= 1'b1;
+              ddr_intf.A11 <= 1'b1;
+              ddr_intf.A10_AP <= 1'b1;
+              ddr_intf.A9_A0 <= '1;
+            end
+            
+            DES: begin
+              ddr_intf.cs_n <= 1'b1;
+              ddr_intf.act_n <= 1'bx;
+              ddr_intf.RAS_n_A16 <= 1'bx;
+              ddr_intf.CAS_n_A15 <= 1'bx;
+              ddr_intf.WE_n_A14 <= 1'bx;
+              ddr_intf.bg_addr <= 2'bxx;
+              ddr_intf.ba_addr <= 2'bxx;
+              ddr_intf.A12_BC_n <= 1'bx;
+              ddr_intf.A17 <= 1'bx;
+              ddr_intf.A13 <= 1'bx;
+              ddr_intf.A11 <= 1'bx;
+              ddr_intf.A10_AP <= 1'bx;
+              ddr_intf.A9_A0 <= 'x;
+            end
+            
+            ZQCL: begin
+              ddr_intf.cs_n <= 1'b0;
+              ddr_intf.act_n <= 1'b1;
+              ddr_intf.RAS_n_A16 <= 1'b1;
+              ddr_intf.CAS_n_A15 <= 1'b1;
+              ddr_intf.WE_n_A14 <= 1'b0;
+              ddr_intf.bg_addr <= 2'b11;
+              ddr_intf.ba_addr <= 2'b11;
+              ddr_intf.A12_BC_n <= 1'b1;
+              ddr_intf.A17 <= 1'b1;
+              ddr_intf.A13 <= 1'b1;
+              ddr_intf.A11 <= 1'b1;
+              ddr_intf.A10_AP <= 1'b1;
+              ddr_intf.A9_A0 <= '1;
+            end
+            
+            NOP: begin
+              ddr_intf.cs_n <= 1'b0;
+              ddr_intf.act_n <= 1'b1;
+              ddr_intf.RAS_n_A16 <= 1'b1;
+              ddr_intf.CAS_n_A15 <= 1'b1;
+              ddr_intf.WE_n_A14 <= 1'b1;
+              ddr_intf.bg_addr <= 2'b11;
+              ddr_intf.ba_addr <= 2'b11;
+              ddr_intf.A12_BC_n <= 1'b1;
+              ddr_intf.A17 <= 1'b1;
+              ddr_intf.A13 <= 1'b1;
+              ddr_intf.A11 <= 1'b1;
+              ddr_intf.A10_AP <= 1'b1;
+              ddr_intf.A9_A0 <= '1;
+            end
+            
+            default: begin
+              ddr_intf.cs_n <= 1'b0;
+              ddr_intf.act_n <= 1'b1;
+              ddr_intf.RAS_n_A16 <= 1'b1;
+              ddr_intf.CAS_n_A15 <= 1'b1;
+              ddr_intf.WE_n_A14 <= 1'b1;
+              ddr_intf.bg_addr <= 2'b11;
+              ddr_intf.ba_addr <= 2'b11;
+              ddr_intf.A12_BC_n <= 1'b1;
+              ddr_intf.A17 <= 1'b1;
+              ddr_intf.A13 <= 1'b1;
+              ddr_intf.A11 <= 1'b1;
+              ddr_intf.A10_AP <= 1'b1;
+              ddr_intf.A9_A0 <= '1;
+            end
+          endcase
 
         end
 
@@ -383,10 +382,10 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
   /*
   capture operating parameters of the MR at initialization
   */
-
+  
   always @(ctrl_intf.mrs_rdy)
-  begin
-     case (ctrl_intf.mode_reg [17:15])
+    begin
+      case (ctrl_intf.mode_reg [17:15])
      //MR0
      // Supported CL for DDR4 1600 9,10,11,12
      3'b000: begin
