@@ -1,0 +1,56 @@
+/// Stimulus Generator 
+`include "Host_Req.sv"
+
+ class Host_Request_Gen ;
+    int trans=0 ; 
+    mailbox mail_box; // creates a mailbox queue 
+   virtual  tb_interface tb_intf ; 
+   
+    Host_Request  host_request ;
+  
+
+   function new(input mailbox Basic_mail_box ,  virtual tb_interface tb_intf);
+     this.mail_box = Basic_mail_box;
+     this.tb_intf = tb_intf ; 
+ 
+   endfunction 
+   
+   task randomize_now();
+   forever 
+      begin
+        wait(tb_intf.act_cmd);
+       
+        host_request=new();
+     
+    
+        if(host_request.randomize()==1)  begin 
+          mail_box.put(host_request); 
+        $display("-----------------------------");
+        $display("Host Address:%0h \nRequest:%0h\nWrite Data:%0h \n",host_request.address, host_request.req, host_request.data);
+          trans++ ; 
+         
+       end 
+        else 
+          begin 
+            $fatal("Randomization failed");
+          end 
+       
+       
+      end 
+  endtask 
+   
+   
+   
+
+ 
+endclass 
+  
+  
+ 
+
+
+  
+ 
+  
+
+
