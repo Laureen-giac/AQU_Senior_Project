@@ -1,17 +1,19 @@
+`define DRIVER tb_intf.DRIVER.driver_cb
 `include "ddr_pkg.pkg"
 
 class driver;
   
-  mailbox gen2drv;
-  int no_trans = 0; 
+  mailbox gen2dvr;
+  int no_trans = 0;
+  host_req gen_req; 
   virtual tb_interface tb_intf;
   virtual ddr_interface ddr_intf; 
   
   
-  function new(input mailbox gen2drv, 
+  function new(input mailbox gen2dvr, 
                input virtual tb_interface tb_intf); 
     
-    this.gen2drv = gen2drv; 
+    this.gen2dvr = gen2dvr; 
     this.tb_intf = tb_intf; 
  
   endfunction 
@@ -19,7 +21,7 @@ class driver;
   /* Get requests from generator, and send to DUT
   */
   task run();
-    host_request gen_req;
+    host_req gen_req;
     tb_intf.rd_data <=  '0; 
     tb_intf.wr_data <=  'z; 
     tb_intf.log_addr <= 'x; 
@@ -29,20 +31,20 @@ class driver;
     tb_intf.CWL <= '0;
     tb_intf.RD_PRE <= '0;
     tb_intf.WR_PRE <= '0;
-    
+     
     forever
       begin 
-        gen2drv.get(gen_req);
-        wait(tb_intf.cmd_rdy); 
-        tb_intf.log_addr <= gen_req.log_addr;
-        tb_intf.request <= gen_req.request;
-        if(gen_req.request == WR_R || gen_req.request == WRA_R)
-          tb_intf.wr_data <= gen_req.wr_data; 
-        else tb_intf.wr_data <= 'z; 
+        @(posedge tb_intf.cmd_rdy); 
+        gen2dvr.get(gen_req);
+        `DRIVER.log_addr <= gen_req.log_addr;
+        `DRIVER.request <= gen_req.request;
+        //if(gen_req.request == WR_R || gen_req.request == WRA_R)
+        `DRIVER.wr_data <= gen_req.wr_data; 
+        //  else `DRIVER.wr_data <= 'z; 
         $display("-----------------------------"); 
         $display("@%0t:DRIVER%0d", $time, no_trans); 
         $display("Host Address:%0h\nRequest:%0h\nWrite Data:%0h\n",gen_req.log_addr, gen_req.request, gen_req.wr_data);
-        no_trans++; 
+        this.no_trans++; 
       end 
   endtask 
   
