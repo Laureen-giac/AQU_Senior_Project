@@ -3,7 +3,7 @@ class generator;
   host_req gen_req;
   mailbox gen2drv; 
   
-  int trans = 0; 
+  int no_trans = 0; 
   
  function new(input mailbox gen2drv);
    this.gen2drv = gen2drv;  
@@ -18,7 +18,7 @@ class generator;
           $display("@%0t:Gen%0d", $time, trans); 
           $display("Host Address:%0h\nRequest:%0h\nWrite Data:%0h\n",gen_req.log_addr, gen_req.request, gen_req.wr_data);
           gen2drv.put(gen_req); 
-          trans++;
+          no_trans++;
         end 
         else 
           begin 
