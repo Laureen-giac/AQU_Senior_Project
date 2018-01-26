@@ -31,7 +31,7 @@ class monitor;
 
   task receive(output host_req gen_req);
     @(`MONITOR.monitor_cb iff 
-      `MONITOR.monitor_cb.cmd_rdy);
+      tb_intf.cmd_rdy);
     gen_req = new(); 
     gen_req.log_addr = `MONITOR.monitor_cb.log_addr;
     gen_req.request = `MONITOR.monitor_cb.request;
