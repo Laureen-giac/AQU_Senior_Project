@@ -185,7 +185,7 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
               ddr_intf.act_n <= 1'b1;
           	  ddr_intf.RAS_n_A16 <= 1'b1;
          	  ddr_intf.CAS_n_A15 <= 1'b0;
-          	  ddr_intf.WE_n_A14 <= 1'b0;
+          	  ddr_intf.WE_n_A14 <= 1'b1;
           	  ddr_intf.bg_addr <= cmd_out.req.phy_addr.bg_addr;
           	  ddr_intf.ba_addr <= cmd_out.req.phy_addr.ba_addr;
           	  ddr_intf.A12_BC_n <= 1'b1;
@@ -201,7 +201,7 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
           	 ddr_intf.act_n <= 1'b1;
           	 ddr_intf.RAS_n_A16 <= 1'b1;
           	 ddr_intf.CAS_n_A15 <= 1'b0;
-          	 ddr_intf.WE_n_A14 <= 1'b0;
+          	 ddr_intf.WE_n_A14 <= 1'b1;
           	 ddr_intf.bg_addr <= cmd_out.req.phy_addr.bg_addr;
           	 ddr_intf.ba_addr <= cmd_out.req.phy_addr.ba_addr;
           	 ddr_intf.A12_BC_n <= 1'b0;
