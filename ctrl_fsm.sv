@@ -1,12 +1,13 @@
 /***********************************************************************************
- * Script : ctrl_fsm.sv *
- * Author: Laureen Giacaman *
- * Description: This module is responsible for implementing the controller FSM p.43
- *The controller has six main states: idle, initialization, refresh, update, activate
-   and read/write.
- *** ERRORS: Sends refresh while still in RW and WAIT:: FIXED
- ***careful of mrs_update  
-**********************************************************************************/
+  * Script : ctrl_fsm.sv *
+  * Author: Laureen Giacaman *
+  * Description: This module is responsible for implementing the controller FSM p.43
+  *The controller has six main states: idle, initialization, refresh, update, activate
+  * and read/write.
+  *** ERRORS: Sends refresh while still in RW and WAIT::FIXED
+  *** careful of mrs_update
+  
+**************************************************************************************/
 
 `include "ddr_pkg.pkg"
 
@@ -42,6 +43,7 @@ module ctrl_fsm(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface t
         clear_update <= 1'b1;
         clear_counter <= 1'b1;
         ctrl_intf.busy <= 1'b0;
+        ctrl_intf.rw_proc <= 1'b1; 
         if(ddr_intf.reset_n)
           ctrl_next_state <= CTRL_INIT;
       end
@@ -51,8 +53,11 @@ module ctrl_fsm(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface t
          ctrl_intf.clear_refresh <= 1'b1;
          ctrl_intf.busy <= 1'b0;
          if(ctrl_intf.ini_done)
-            ctrl_next_state <= CTRL_ACTIVATE; //no open rows
+           begin 
+             ctrl_next_state <= CTRL_ACTIVATE; //no open rows
+             ctrl_intf.rw_proc <= 1'b1; 
           end
+        end 
 
       CTRL_RW: //controller should always stay here unless refresh is out | update
         begin
@@ -127,8 +132,9 @@ module ctrl_fsm(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface t
 
     endcase
 
- /* Counter for keeping track of row cycle (ACTIVATION + PRECHARGE)
- */
+
+	/* Counter for keeping track of row cycle (ACTIVATION + PRECHARGE)
+    */
   always_ff@(posedge ddr_intf.CK_t)
     begin
       if(clear_counter)
