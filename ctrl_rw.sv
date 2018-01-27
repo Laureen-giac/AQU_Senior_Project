@@ -30,7 +30,7 @@ module ctrl_rw(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
           ctrl_intf.rda_rdy <= 1'b0;
           ctrl_intf.wra_rdy <= 1'b0;
           ctrl_intf.rw_done <= 1'b0;
-          ctrl_intf.data_idle <= 1'b0;
+          ctrl_intf.data_idle <= 1'b1;
           next_rw_state <= RW_IDLE;
         end
 
@@ -39,7 +39,6 @@ module ctrl_rw(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
           case(current_rw_state)
 
             RW_IDLE: begin
-              ddr_intf.number <= 1'b1;
               ctrl_intf.rw_done <=1'b1;
               ctrl_intf.data_idle <= 1'b1;
               ctrl_intf.rd_rdy <= 1'b0;
@@ -75,7 +74,6 @@ module ctrl_rw(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
 
 
           RW_DATA: begin
-            ddr_intf.number <= 3 ;
             clear_rw_counter <= 0 ;
             ctrl_intf.rw_done <=1 ;
             ctrl_intf.rd_rdy <= 0 ;
@@ -105,7 +103,7 @@ module ctrl_rw(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
 
       else if((current_rw_state ==RW_IDLE) && (ctrl_intf.cas_rdy)) begin
 
-        cas_cmd_out =ctrl_intf.act_req;
+        cas_cmd_out =ctrl_intf.act_rw;
         if(cas_cmd_out == RD_R) begin
           delay = ctrl_intf.CL + ctrl_intf.AL + ctrl_intf.RD_PRE ;
         end
