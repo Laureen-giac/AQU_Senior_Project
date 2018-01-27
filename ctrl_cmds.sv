@@ -55,7 +55,7 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
   always_ff@(posedge ctrl_intf.cas_rdy) 
     begin 
       rw_cmd_out = rw_cmd_queue.pop_front();
-      $display("Popping %h ", rw_cmd_out.request); 
+     // $display("Popping %h ", rw_cmd_out.request); 
     end
     
   /* Generating the commands is combo logic
@@ -77,7 +77,6 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
      
      if(ctrl_intf.cas_rdy) 
        begin
-         $display("HEREE and cmd is %h", rw_cmd_out.request);
          if(rw_cmd_out.request == WR_R)
              begin 
                cmd_out.cmd = WR;
@@ -94,8 +93,7 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
          else 
            if(rw_cmd_out.request == WRA_R)
              begin 
-               cmd_out.cmd = WRA; 
-               $display("Here");
+               cmd_out.cmd = WRA;
                cmd_out.req.phy_addr = rw_cmd_out.phy_addr; 
              end 
          
@@ -215,7 +213,6 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
             end
             
             WR: begin
-              $display("decoding write");
               ddr_intf.cs_n <= 1'b0;
               ddr_intf.act_n <= 1'b1;
               ddr_intf.RAS_n_A16 <= 1'b1;
