@@ -5,7 +5,7 @@ module dimm_model(ddr_interface ddr_intf,
                   tb_interface tb_intf);
   
   parameter MRS_C = 5'b01000; 
-  parameter REF_c = 5'b01001; 
+  parameter REF_C = 5'b01001; 
   parameter PRE_C = 5'b10101; 
   parameter ACT_C = 5'b00111; 
   parameter WR_C = 5'b01100; 
