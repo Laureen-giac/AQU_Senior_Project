@@ -35,7 +35,7 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
       
       always_comb
         begin
-          if(cmd_rdy_d && !ctrl_intf.busy) begin
+         if(tb_intf.cmd_rdy && !ctrl_intf.busy) begin
             address_decode(tb_intf.log_addr); //GEN; pass ref.
             ctrl_intf.mem_addr = host_req.phy_addr;
             ctrl_intf.req = tb_intf.request;
@@ -69,7 +69,6 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
      */
  if(ctrl_intf.act_rdy)
       begin
-        $display("i'm here !!! , act_rdy is 1 ");
         cmd_out.cmd = ACT;
         cmd_out.req.phy_addr = phy_addr;
         cmd_out.req.request = 2'b00;
