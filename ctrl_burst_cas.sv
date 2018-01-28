@@ -228,10 +228,10 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
 
     begin
       /*Read to Write Delay */
-      if ((req  == RD && prev_req == WR) ||
-        (req == RD && prev_req == WRA) ||
-        (req == RDA && prev_req == WR) ||
-          (req == RDA && prev_req == WRA))
+        if ((req  == RD_R && prev_req == WR_R) ||
+            (req == RD_R && prev_req == WRA_R) ||
+            (req == RDA_R && prev_req == WR_R) ||
+            (req == RDA_R && prev_req == WRA_R))
         begin
           //user programmed refer to waveform
           extra_wait = ctrl_intf.CL + (2 * ctrl_intf.AL) + ctrl_intf.BL/2 + ctrl_intf.CWL + 2;
