@@ -5,7 +5,6 @@
   ->the set of commands from JEDEC sec4.1 pg: 24.
   ->The supported commands should be: MRS, REF, PRE(PREA*),ACT,WR(WRA*),
   	RD(RDA*), NOP, DES, ZQCL
-
   **ERRORS: DES is the default command:::FIXED
   **careful of NOP::FIXED, @ decode
 ****************************************************************************/
@@ -20,6 +19,7 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
   rw_request rw_cmd_queue[$];
   command_type cmd_out;
   mem_addr_type phy_addr; 
+  bit cmd_rdy_d ; 
 
   /*
   Asych. reset
@@ -35,7 +35,7 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
       
       always_comb
         begin
-          if(tb_intf.cmd_rdy && !ctrl_intf.busy) begin
+          if(cmd_rdy_d && !ctrl_intf.busy) begin
             address_decode(tb_intf.log_addr); //GEN; pass ref.
             ctrl_intf.mem_addr = host_req.phy_addr;
             ctrl_intf.req = tb_intf.request;
@@ -67,15 +67,16 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
      /*
      Need to send memory @ here
      */
-
-      if(ctrl_intf.act_rdy)
+ if(ctrl_intf.act_rdy)
       begin
+        $display("i'm here !!! , act_rdy is 1 ");
         cmd_out.cmd = ACT;
         cmd_out.req.phy_addr = phy_addr;
         cmd_out.req.request = 2'b00;
       end
      
-     if(ctrl_intf.cas_rdy) 
+     
+     else if(ctrl_intf.cas_rdy) 
        begin
          if(rw_cmd_out.request == WR_R)
              begin 
@@ -104,6 +105,7 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
                cmd_out.req.phy_addr = rw_cmd_out.phy_addr; 
              end 
        end 
+       
      
      else
        begin
@@ -149,8 +151,9 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
   /* Decoding the commands. Refer to JEDEC sec4.1 pg:24
   */
 
-  always_ff @(posedge ddr_intf.CK_t)
+  always_ff @(posedge ddr_intf.CK_c)
     begin
+      
       if ((ctrl_intf.act_rdy)
         ||(ctrl_intf.rd_rdy)
         ||(ctrl_intf.wr_rdy)
@@ -162,9 +165,11 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
         ||(ctrl_intf.zqcl_rdy)
           ||(ctrl_intf.des_rdy))
         
-        begin
+        begin 
+       
           case(cmd_out.cmd)
             ACT: begin
+              $display("act_command is officially ");
               ddr_intf.cs_n <= 1'b0;
           	  ddr_intf.act_n <= 1'b0;
               ddr_intf.RAS_n_A16 <= 1'b1;
@@ -213,6 +218,7 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
             end
             
             WR: begin
+              $display("act_command is officially ");
               ddr_intf.cs_n <= 1'b0;
               ddr_intf.act_n <= 1'b1;
               ddr_intf.RAS_n_A16 <= 1'b1;
@@ -307,6 +313,8 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
               ddr_intf.A10_AP <= 1'b1;
               ddr_intf.A9_A0 <= '1;
             end
+            
+            
             
             DES: begin
               ddr_intf.cs_n <= 1'b1;
@@ -427,6 +435,11 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
      end
      endcase
   end
+  always_ff @(ddr_intf.CK_t)
+begin
+   cmd_rdy_d <= tb_intf.cmd_rdy;
+   
+end
 
 
   //find an algorithm
