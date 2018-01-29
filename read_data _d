@@ -31,26 +31,29 @@ end
   
   
   
-   task set_differential_dqs(input wr_data_type rw_D );
+   task set_diff_dqs(input wr_data_type rw_D);
      begin
      @(posedge ddr_intf.CK_r );
      ddr_intf.dqs_t <=  1'b1; 
-     ddr_intf.dqs_c <=  1'b0; 
+     ddr_intf.dqs_c <=  1'b0;
        repeat(rw_D.preamable-1)@(posedge ddr_intf.CK_r);// refer to jedec p.115
-     repeat(rw_D.burst_length +1 )@(posedge ddr_intf.CK_r); // as we started one clock cycle before outputing data on the bus
-     begin 
-     ddr_intf.dqs_t <= !ddr_intf.dqs_t; 
-     ddr_intf.dqs_c <= !ddr_intf.dqs_c;
-     end 
+       repeat(rw_D.burst_length +1 ) 
+       begin
+         @(posedge ddr_intf.CK_r)
+        // $display("dqs is pouncing !!");
+         ddr_intf.dqs_t <= !ddr_intf.dqs_t; 
+     	 ddr_intf.dqs_c <= !ddr_intf.dqs_c;
+       end 
+       repeat (1) begin
+         @ (posedge ddr_intf.CK_r)
+     ddr_intf.dqs_t = ~ddr_intf.dqs_t;
+     ddr_intf.dqs_c =1'b1;
+   end  
        
-       
-       //smth missed here maybe 
-     // both clocks will return to logic one after data is outputed on the dq bus 
-      ddr_intf.dqs_t <= 1'b1; 
-      ddr_intf.dqs_c <= 1'b1; 
-     end 
-     
-     endtask 
+       ddr_intf.dqs_t <= 1'b1; 
+       ddr_intf.dqs_c <= 1'b1; 
+     end
+  endtask 
      
   
   
