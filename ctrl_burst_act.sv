@@ -118,14 +118,14 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
           end
 
           ACTIVATE_CAS:begin
-            hit <= 1'b0;
+           // hit <= 1'b0;
             no_activate_command <=  1'b0;
             clear_activate_counter <= 1'b1;
             next_activate_state <=ACTIVATE_IS_IDLE;
           end
 
           PRECHARGE_WAIT_DATA:begin
-            miss <= 0 ;
+           // miss <= 0 ;
             clear_activate_counter <= 1'b1 ;
             if(ctrl_intf.cas_idle ) begin
               next_activate_state <=  PRECHARGE_WAIT_STATE;
