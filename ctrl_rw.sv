@@ -42,7 +42,7 @@ module ctrl_rw(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
               ctrl_intf.rw_done <=1'b1;
               ctrl_intf.data_idle <= 1'b1;
               ctrl_intf.rd_rdy <= 1'b0;
-              ctrl_intf.wr_rdy <= 1'b1;
+              ctrl_intf.wr_rdy <= 1'b0;
               ctrl_intf.rda_rdy <= 1'b0;
               clear_rw_counter <= 1'b0 ;
 
