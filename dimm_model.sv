@@ -148,7 +148,7 @@ module dimm_model(ddr_interface ddr_intf,
         end
     end
   
-  always@(wr_end, rd_start, ddr_intf.reset_n) 
+  always@(wr_end, ddr_intf.rd_start, ddr_intf.reset_n) 
     begin
       bit[29:0] dimm_index; 
       
