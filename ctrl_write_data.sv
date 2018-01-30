@@ -19,13 +19,7 @@ module ctrl_write_data(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inte
         wr_in.preamable = ctrl_intf.WR_PRE;
         wr_in.wr_data = tb_intf.wr_data;  
         wr_queue.push_back(wr_in);
-      end 
-    
-    if(ctrl_intf.wr_rdy)
-      begin 
-        //wr_out_final = wr_out;
-        ctrl_intf.dimm_req = WR_R; 
-      end      
+      end     
   end
   
    always_ff@(posedge ctrl_intf.wr_rdy)
