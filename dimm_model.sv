@@ -150,7 +150,7 @@ module dimm_model(ddr_interface ddr_intf,
   
   always@(wr_end, ddr_intf.rd_start, ddr_intf.reset_n) 
     begin
-      bit[29:0] dimm_index; 
+      bit[27:0] dimm_index; 
       
       if(!ddr_intf.reset_n) 
         begin 
