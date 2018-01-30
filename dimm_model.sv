@@ -18,7 +18,7 @@ module dimm_model(ddr_interface ddr_intf,
   bit act, wr, rd; 
   bit rd_start, wr_end; 
   
-  bit[4:0] cycle_8;
+  bit[40] cycle_8;
   bit[2:0] cycle_4; 
   
   logic[4:0][7:0] data_t, data_c; 
@@ -124,10 +124,9 @@ module dimm_model(ddr_interface ddr_intf,
   
   always_ff@(posedge ddr_intf.dqs_t)
     begin
-      if(ctrl_intf.dimm_req == WR_R)
-      //  $display("dqs_t at %h", ddr_intf.dq); 
-        data_t <= {ddr_intf.dq, data_t[4:1]}; 
-    end 
+      if(ctrl_intf.dimm_req == WR_R) 
+       data_t <= {ddr_intf.dq, data_t[4:1]};
+    end
   
   always_ff@(posedge ddr_intf.dqs_c or negedge ddr_intf.reset_n)
     begin
@@ -139,7 +138,6 @@ module dimm_model(ddr_interface ddr_intf,
       
       else if(ctrl_intf.dimm_req == WR_R)
         begin
-         // $display("dqs_c at %h", ddr_intf.dq); 
           data_c <= {ddr_intf.dq, data_c[4:1]}; 
           if(ctrl_intf.BL == 8 ) 
             cycle_8 <= {cycle_8[3:0] , cycle_8[4]}; 
@@ -162,9 +160,8 @@ module dimm_model(ddr_interface ddr_intf,
           dimm_index = {row_addr, col_addr}; 
           if ((wr_end) && (ctrl_intf.BL == 8)) 
         begin
-         // $display("%h", data_c); 
-          dimm[{row_addr,col_addr}] = {data_t[4], data_c[3], data_t[3], data_c[2], data_t[2], data_c[1], data_t[1], data_c[0]};
-          tb_intf.dimm_data = dimm[{row_addr,col_addr}];
+          dimm[{row_addr,col_addr}] = { data_t[3], data_c[3], data_t[2], 
+                                       data_c[2], data_t[1], data_c[1], data_t[0], data_c[0]};
         end 
       
      else if (wr_end) 
@@ -174,13 +171,14 @@ module dimm_model(ddr_interface ddr_intf,
         end 
       
       if ((ddr_intf.rd_start) && (ctrl_intf.BL == 8)) begin
+         
             ddr_intf.data_out.wr_data = dimm[{row_addr,col_addr}];
             ddr_intf.data_out.burst_length = ctrl_intf.BL;
             ddr_intf.data_out.preamable = tb_intf.RD_PRE;
           end
           
       else if (ddr_intf.rd_start) begin
-            ddr_intf.data_out.wr_data[31:0] = dimm[dimm_index];
+            ddr_intf.data_out.wr_data[31:0] = dimm[dimm_index]; 
             ddr_intf.data_out.burst_length  = ctrl_intf.BL;
             ddr_intf.data_out.preamable = ctrl_intf.RD_PRE;
           end
