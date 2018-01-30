@@ -24,7 +24,7 @@ module dimm_model(ddr_interface ddr_intf,
   logic[4:0][7:0] data_t, data_c; 
   logic[7:0][7:0] data;
   logic[4:0] cmd;
-  bit [18:0] act_addr, row_addr;
+  bit [17:0] act_addr, row_addr;
   
   
   always_ff@(posedge ddr_intf.CK_t) 
@@ -152,7 +152,7 @@ module dimm_model(ddr_interface ddr_intf,
       
       if(!ddr_intf.reset_n) 
         begin 
-          dimm_index = 28'b0;
+          dimm_index = 1'b0;
         end
       
       else 
