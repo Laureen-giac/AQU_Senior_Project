@@ -42,7 +42,7 @@ module ctrl_rd_data(ddr_interface ddr_intf, ctrl_interface ctrl_intf);
       @(posedge ddr_intf.CK_r); 
       ddr_intf.dq = 8'bz ;
      repeat(rw_D.preamable) @(posedge ddr_intf.CK_r); 
-      repeat(rw_D.burst_length)
+      repeat(rw_D.burst_length + 1)
        begin
          @(posedge ddr_intf.CK_r)
          ddr_intf.dq = rw_D.wr_data[7:0] ;
