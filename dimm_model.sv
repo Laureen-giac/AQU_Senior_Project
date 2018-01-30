@@ -152,7 +152,7 @@ module dimm_model(ddr_interface ddr_intf,
       
       if(!ddr_intf.reset_n) 
         begin 
-          dimm_index = 1'b0;
+          dimm_index = 28'b0;
         end
       
       else 
