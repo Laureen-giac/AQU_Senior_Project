@@ -18,7 +18,7 @@ module dimm_model(ddr_interface ddr_intf,
   bit act, wr, rd; 
   bit rd_start, wr_end; 
   
-  bit[40] cycle_8;
+  bit[4:0] cycle_8;
   bit[2:0] cycle_4; 
   
   logic[4:0][7:0] data_t, data_c; 
