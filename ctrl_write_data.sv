@@ -51,7 +51,7 @@ module ctrl_write_data(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inte
        @(negedge  ddr_intf.CK_r);
        ddr_intf.dq = 8'bz ;
        repeat(rw_D.preamable) @(negedge ddr_intf.CK_r); 
-       repeat(rw_D.burst_length + 1)
+       repeat(rw_D.burst_length)
          begin  
            @(negedge ddr_intf.CK_r)
            ddr_intf.dq = rw_D.wr_data[7:0] ;
