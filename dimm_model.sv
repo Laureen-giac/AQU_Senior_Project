@@ -48,7 +48,7 @@ module dimm_model(ddr_interface ddr_intf,
           rd <= 1'b0; 
         end 
       
-      else 
+      else if(cmd == RD_C) 
         begin 
           act <= 1'b0; 
           wr <= 1'b0; 
