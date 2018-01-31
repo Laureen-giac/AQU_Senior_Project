@@ -2,8 +2,8 @@
   * Script : ctrl_burst_act.sv *
   * Author: Diana Atiyeh *
   * Description: This module is responsible for controlling the ACTIVATE command
-  *This module keeps an array of open rows indexed by the bank group and bank address 
-  *A row hit is an open row. 
+  *This module keeps an array of open rows indexed by the bank group and bank address
+  *A row hit is an open row.
   *A row miss is a closed row in an open bank
   *An empty page is a closed bank
 *******************************************************************/
@@ -21,33 +21,62 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
   logic miss;
   logic empty;
   logic clear_activate_counter ;
-  logic act_rdy, activate_ready_d; 
-  logic no_activate_command , no_activate_command_d;
+  logic act_rdy, act_rdy_d, act_tmp;
+  logic no_act, no_act_d, no_act_tmp;
   logic bank_init;
   logic cas_d, rw_d;
   logic [15:0 ][14:0]bank_activated ; // keep track of open banks
-  bit  [2:0]Request_Type ; 
-  int EXTRA_CYCLES  ;
-  
- 
- 
+  bit  [2:0]Request_Type ;
+  int EXTRA_CYCLES;
+
   always_comb
     begin
       ctrl_intf.rw_idle <=  (ctrl_intf.cas_idle) && (ctrl_intf.act_idle) && (ctrl_intf.data_idle);
-      ctrl_intf.no_act_rdy <= no_activate_command; 
-      ctrl_intf.act_rdy <= act_rdy;
+      //ctrl_intf.no_act_rdy <= no_activate_command;
+      //ctrl_intf.act_rdy <= act_rdy;
     end
+
+
+  always_ff@(posedge ddr_intf.CK_t)
+    begin
+      ctrl_intf.act_rdy <= act_tmp;
+      ctrl_intf.no_act_rdy <= no_act_tmp;
+    end
+
+  always_comb
+    begin
+      if (((no_act   == 1'b1) && (ctrl_intf.cas_rdy == 1'b1)) ||
+          ((no_act_d == 1'b1) && (cas_d == 1'b1)))
+        no_act_tmp  <= no_act_d;
+      else
+        no_act_tmp <= no_act;
+    end
+
+  always_comb
+    begin
+      if (((act_rdy   == 1'b1) && (ctrl_intf.cas_rdy == 1'b1)) ||
+          ((act_rdy_d == 1'b1) && (cas_d == 1'b1)))
+        act_tmp   <= act_rdy_d;
+      else
+       act_tmp   <= act_rdy;
+    end
+
 
 
   always_ff @(posedge ddr_intf.CK_t  or negedge ddr_intf.reset_n )
   begin
     if(!ddr_intf.reset_n)
-      current_activate_state <=  ACTIVATE_IS_IDLE ;
+      begin
+        current_activate_state <=  ACTIVATE_IS_IDLE;
+      //  ctrl_intf.act_rdy <= 1'b0;
+      end
+
     else
       begin
         current_activate_state <= next_activate_state ;
-        no_activate_command_d <=  no_activate_command ;
-        activate_ready_d <= act_rdy;
+        no_act_d <=  no_act ;
+        act_rdy_d <= act_rdy;
+        //activate_ready_d <= act_rdy;
         cas_d <= ctrl_intf.cas_rdy;
         rw_d <=  ctrl_intf.rw_rdy;
       end
@@ -58,7 +87,7 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
       if(!ddr_intf.reset_n) begin
         clear_activate_counter <= 1'b1 ;
         act_rdy<=0 ;
-        no_activate_command <= 1'b0 ;
+        no_act <= 1'b0 ;
         next_activate_state <=  ACTIVATE_IS_IDLE ;
         ctrl_intf.act_idle <= 1'b0;
         bank_init <= 1;
@@ -69,20 +98,20 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
         begin
         case(current_activate_state)
           ACTIVATE_IS_IDLE : begin
-            act_rdy <= 0 ;
-            no_activate_command <= 1'b0;
+            act_rdy <= 1'b0;
+            no_act <= 1'b0;
             ctrl_intf.pre_rdy <= 1'b0;
             ctrl_intf.act_idle <= 1'b1;
             bank_init <= 0 ;
 
-            if((tb_intf.cmd_rdy) && (ctrl_intf.rw_proc)) begin
+            if((tb_intf.cmd_rdy) && (tb_intf.rw_proc)) begin
               next_activate_state <=  ACTIVATE_WAIT_STATE ;
               check_for_activated_bank ();
             end
           end
 
           ACTIVATE_WAIT_STATE:  begin
-            no_activate_command <= 1'b0 ;
+            no_act <= 1'b0 ;
             act_rdy <= 1'b0 ;
             clear_activate_counter <= 1'b0 ;
             ctrl_intf.act_idle <= 1'b0 ;
@@ -91,7 +120,7 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
             if( (activate_counter== tRRD)  && ( hit ) && (!miss)) begin
               next_activate_state <=  ACTIVATE_CAS ;
               ctrl_intf.act_rw  <= ctrl_intf.req;
-              no_activate_command <= 1'b1;
+              no_act <= 1'b1;
             end
 
             else
@@ -101,9 +130,10 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
            else
              if((activate_counter== tRRD)  && (!miss)  && (!hit))
                begin
+                 act_rdy <=  1'b1;
                  next_activate_state <=  ACTIVATE_COMMAND ;
                  ctrl_intf.act_rw  <= ctrl_intf.req;
-                 act_rdy <=  1'b1;
+
                end
 
          else begin
@@ -118,14 +148,14 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
           end
 
           ACTIVATE_CAS:begin
-           // hit <= 1'b0;
-            no_activate_command <=  1'b0;
+            hit <= 1'b0;
+            no_act <=  1'b0;
             clear_activate_counter <= 1'b1;
             next_activate_state <=ACTIVATE_IS_IDLE;
           end
 
           PRECHARGE_WAIT_DATA:begin
-           // miss <= 0 ;
+            miss <= 0 ;
             clear_activate_counter <= 1'b1 ;
             if(ctrl_intf.cas_idle ) begin
               next_activate_state <=  PRECHARGE_WAIT_STATE;
@@ -192,7 +222,7 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
           else if(bank_activated[index]===15'bz) begin// bank not  activated
             miss <= 0 ;
             hit <= 0 ;
-            empty = 1'b1; 
+            empty = 1'b1;
             bank_activated[index] <=  ctrl_intf.mem_addr.row_addr ;
           end
 
@@ -200,7 +230,7 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
             bank_activated[index] <=  ctrl_intf.mem_addr.row_addr ;
             miss <= 1 ;
             hit  <= 0 ;
-            empty = 1'b0; 
+            empty = 1'b0;
           end
         end
     end
