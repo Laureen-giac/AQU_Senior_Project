@@ -94,55 +94,67 @@ module ctrl_rw(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
         end
     end
   
-  always @(ddr_intf.reset_n, ctrl_intf.cas_rdy, new_data)
+  always@(ctrl_intf.cas_rdy , new_data, ddr_intf.reset_n)
     begin
-      int temp;
-      
-      if (!ddr_intf.reset_n)
-        begin
-          cas_command_track.delete();    //delete the queues
-          cas_type_track.delete(); 
-          rw_delay  = 0;
+      if(!ddr_intf.reset_n) begin
+        cas_command_track.delete();
+        cas_type_track.delete(); 
+        rw_delay <= 0 ;
         end
-      
-      //calculate # cycles each CAS command waited in queue
-      
-      if((current_rw_state  == RW_IDLE)  && (ctrl_intf.cas_rdy))
-        begin
-          cas_cmd_out = ctrl_intf.act_rw; 
-          if (cas_cmd_out == RD_R)
-            delay = ctrl_intf.CL  + ctrl_intf.AL - ctrl_intf.RD_PRE;
-          else
-            delay = ctrl_intf.CWL + ctrl_intf.AL - ctrl_intf.WR_PRE;
-          rw_delay = delay - 1;
+
+      else if((current_rw_state ==RW_IDLE) && (ctrl_intf.cas_rdy)) begin
+
+        cas_cmd_out =ctrl_intf.act_rw;
+        
+        if(cas_cmd_out == RD_R) begin
+          delay = ctrl_intf.CL + ctrl_intf.AL - ctrl_intf.RD_PRE ;
         end
-      else if ((current_rw_state  == RW_DATA) && (new_data)) 
+
+        else
+          begin
+          delay =  ctrl_intf.CWL + ctrl_intf.AL - ctrl_intf.WR_PRE;
+          end
+
+        rw_delay = delay  ;
+
+      end
+
+      else if((current_rw_state ==RW_WAIT_STATE) && (ctrl_intf.cas_rdy))
         begin
-          if (cas_type_track.pop_front === RD_R)
-            delay = ctrl_intf.CL  + ctrl_intf.AL - ctrl_intf.RD_PRE;
-          else
-            delay = ctrl_intf.CL  + ctrl_intf.AL - ctrl_intf.RD_PRE;
-          
-          temp = delay - cas_command_track.pop_front - 1;
-          
-          if (temp > delay)
-            rw_delay = temp;
-          else
-            rw_delay = delay + ctrl_intf.BL/2;    // enough for the preamble
-          
-          //update # cycles each RW cmd waited
-      foreach (cas_command_track[i])
-         cas_command_track[i] = {(cas_command_track[i] + rw_delay +1 )};
+          cas_command_track ={cas_command_track , rw_delay - rw_counter };
+          cas_type_track={cas_type_track, ctrl_intf.cas_req};
         end
-      
-      if ((ctrl_intf.cas_rdy) && (current_rw_state != RW_IDLE))
+
+      else if((current_rw_state ==RW_DATA)&& (new_data))
         begin
-          cas_command_track = {cas_command_track, (rw_delay - rw_counter)};
-          cas_type_track = {cas_type_track, ctrl_intf.cas_req};
+          cas_cmd_out = cas_type_track.pop_front;
+
+          if(cas_cmd_out == RD_R)begin
+
+            delay = ctrl_intf.CL+ctrl_intf.AL  + ctrl_intf.RD_PRE ;
+          end
+
+        else
+          begin
+          delay= ctrl_intf.CWL + ctrl_intf.AL + ctrl_intf.WR_PRE;
+          end
+
+        rw_delay =  delay - cas_command_track.pop_front;
+
+        foreach(cas_command_track[i])
+          cas_command_track[i] = {( cas_command_track[i] + rw_delay + 1)};
+
+      end
+
+      if ((current_rw_state == RW_DATA) && (ctrl_intf.cas_rdy))
+        begin
+          cas_command_track ={cas_command_track , rw_delay };
+          cas_type_track={cas_type_track, ctrl_intf.cas_req};
         end
     end
-  
-always_ff@(posedge ddr_intf.CK_t )
+
+
+  always_ff@(posedge ddr_intf.CK_t )
     begin
       if(clear_rw_counter)
         rw_counter <= 0;
@@ -157,5 +169,6 @@ always_ff@(posedge ddr_intf.CK_t )
       else
         new_data <= 1'b0 ;
     end
+
 
 endmodule
