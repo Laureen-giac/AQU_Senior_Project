@@ -36,8 +36,8 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
       always_comb
         begin
           if(tb_intf.cmd_rdy && !ctrl_intf.busy) begin
-            address_decode(tb_intf.log_addr); //GEN; pass ref.
-            ctrl_intf.mem_addr = host_req.phy_addr;
+            phy_addr = address_decode(tb_intf.log_addr, phy_addr); //GEN; pass ref.
+            ctrl_intf.mem_addr = phy_addr;
             ctrl_intf.req = tb_intf.request;
           end
         end 
