@@ -25,8 +25,8 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
   logic no_act, no_act_d, no_act_tmp;
   logic bank_init;
   logic cas_d, rw_d;
-  logic [15:0][13:0]bank_activated; // keep track of open banks
-  bit [2:0] Request_Type;
+  logic [15:0 ][14:0]bank_activated ; // keep track of open banks
+  bit  [2:0]Request_Type ;
   int EXTRA_CYCLES;
 
   always_comb
