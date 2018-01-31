@@ -46,8 +46,8 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
         begin
           if(ctrl_intf.act_rdy || ctrl_intf.no_act_rdy) 
             begin 
-              host_req.phy_addr = phy_addr;
-              host_req.request = tb_intf.request; //GEN
+              host_req.phy_addr = ctrl_intf.mem_addr;
+              host_req.request = ctrl_intf.req; //GEN
               rw_cmd_queue.push_back(host_req); 
             end 
         end
@@ -443,11 +443,12 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
 
   //find an algorithm
 
- function automatic void address_decode(logic[39:0] logical_addr);
+ function automatic mem_addr_type address_decode(logic[39:0] logical_addr, output mem_addr_type phy_addr);
    		 phy_addr.bg_addr =  logical_addr[1:0];
    		 phy_addr.ba_addr =  logical_addr[3:2];
  	     phy_addr.row_addr = logical_addr[17:4];
   		 phy_addr.col_addr = logical_addr[27:18];
+    return phy_addr; 
    endfunction
 
 
