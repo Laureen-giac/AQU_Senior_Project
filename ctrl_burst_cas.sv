@@ -1,13 +1,14 @@
 /***********************************************************************************
- * Script : ctrl_burst_cas.sv *
- * Author: Laureen Giacaman *
- * Description: This module is responsible for controlling the CAS timing latencies
+  * Script : ctrl_burst_cas.sv *
+  * Author: Laureen Giacaman *
+  * Description: This module is responsible for controlling the CAS timing latencies
     which are tRCD: ACT to CAS delay which only comes into play whenever a request
     arrives for a data that is not in an actitve row. and tCCD which is the delay
-    from one column access to the next column.   
- * CAS: READ OR WRITE
- * ERRORS: PREV REQ:: FIXED
-***********************************************************************************/
+    from one column access to the next column.
+  CAS: READ OR WRITE
+  
+  ERRORS: PREV REQ
+*******************************************************************/
 
 `include "ddr_pkg.pkg"
 
@@ -41,7 +42,7 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
           ctrl_intf.cas_rdy <= 1'b0;
           ctrl_intf.cas_idle <= 1'b1;
           prev_req <= RD_R; 
-          ignore = 1'b0;
+          //ignore = 1'b0;
         end
       else
         begin
@@ -228,10 +229,10 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
 
     begin
       /*Read to Write Delay */
-        if ((req  == RD_R && prev_req == WR_R) ||
-            (req == RD_R && prev_req == WRA_R) ||
-            (req == RDA_R && prev_req == WR_R) ||
-            (req == RDA_R && prev_req == WRA_R))
+      if ((req  == RD_R && prev_req == WR_R) ||
+          (req == RD_R && prev_req == WRA_R) ||
+          (req == RDA_R && prev_req == WR_R) ||
+          (req == RDA_R && prev_req == WRA_R))
         begin
           //user programmed refer to waveform
           extra_wait = ctrl_intf.CL + (2 * ctrl_intf.AL) + ctrl_intf.BL/2 + ctrl_intf.CWL + 2;
