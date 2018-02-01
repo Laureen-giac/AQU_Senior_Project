@@ -34,7 +34,7 @@ module dimm_model(ddr_interface ddr_intf,
   
   always_comb 
     begin 
-      if(cmd == ACT_C) 
+      if(cmd[4:3] == ACT_C) 
         begin 
           act <= 1'b1; 
           wr <= 1'b0; 
@@ -62,7 +62,7 @@ module dimm_model(ddr_interface ddr_intf,
   
   always_ff@(posedge ddr_intf.CK_t) 
     begin 
-      ddr_intf.rd_start <= (ctrl_intf.dimm_req == RD_R);  
+      ddr_intf.rd_start <= (ctrl_intf.dimm_req == RD_R) && (ctrl_intf.rd_rdy);  
     end 
   
   always@(posedge act)
