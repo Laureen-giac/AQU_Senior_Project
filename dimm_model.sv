@@ -62,7 +62,7 @@ module dimm_model(ddr_interface ddr_intf,
   
   always_ff@(posedge ddr_intf.CK_t) 
     begin 
-      ddr_intf.rd_start <= (ctrl_intf.dimm_req == RD_R) && (tb_intf.cmd_rdy);  
+      ddr_intf.rd_start <= (ctrl_intf.dimm_req == RD_R);  
     end 
   
   always@(posedge act)
