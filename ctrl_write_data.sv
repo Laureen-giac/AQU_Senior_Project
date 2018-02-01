@@ -52,7 +52,7 @@ module ctrl_write_data(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inte
          begin  
            @(negedge ddr_intf.CK_r)
            ddr_intf.dq = rw_D.wr_data[7:0]; 
-           rw_D.wr_data=  {8'h00, rw_D.wr_data[63:8]} ;
+           rw_D.wr_data=  rw_D.wr_data >> 8 ;
          end 
      ddr_intf.dq = 'z;
      end 
