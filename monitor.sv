@@ -16,9 +16,9 @@ class monitor;
   endfunction
 
   task run();
+    forever
     fork 
-      forever
-        begin
+      begin
           $display("-----------------------------");
           $display("@%0t:MONITOR", $time);
           receive(gen_req);
