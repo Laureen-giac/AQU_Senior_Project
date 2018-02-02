@@ -1,0 +1,170 @@
+class Score_board ;
+mailbox mon2check ; 
+virtual ddr_interface ddr_intf;
+  virtual tb_interface tb_intf;
+virtual ctrl_interface ctrl_intf ;
+// i need to have a acopy from gen2driv
+mailbox gen2driv ; 
+ //i have to maintain ana array to  store the write data 
+ write_data write_data_array[dimm_addr]; 
+ write_data wr_data , rd_data ;  
+ 
+ bit [39:0]index ;
+ bit rd_end ; 
+ Host_Request host_req ;  
+ logic [4:0][7:0] data_c,data_t;
+ bit [4:0]cycle_8 = 5'b10000;
+bit [2:0]cycle_4 = 5'b100;
+ 
+ mem_addr_type rd_addr ; 
+ mem_addr_type rd_addr_queue[$] ;
+ 
+ int no_transactions ; 
+Host_Request_Gen gen ; 
+
+  function new ( input virtual ddr_interface ddr_intf,input virtual tb_interface tb_intf, input virtual ctrl_interface ctrl_intf,input mailbox mon2check , input mailbox gen2driv) ;
+
+ this.mon2check= mon2check ; 
+ this.ddr_intf=ddr_intf ;  
+ this.gen2driv= gen2driv; 
+ this.ctrl_intf= ctrl_intf ;
+ this.tb_intf= tb_intf;
+  
+
+endfunction 
+
+
+
+  task store_write_data();
+    forever begin 
+ @(posedge tb_intf.cmd_rdy) 
+
+
+
+   host_req= new() ; 
+  gen2driv.get(host_req);
+  if(host_req.req== WR_R)
+   begin 
+     write_data_array[host_req.address]=  host_req.data ; 
+   end 
+  else if(host_req.req==RD_R)
+   begin
+
+     rd_addr_queue.push_back(host_req.address) ;
+  end 
+end
+
+endtask
+
+
+
+
+
+  task score_boarding() ; 
+     string result; 
+  Host_Request host_req_samp ; 
+    forever begin 
+      @(posedge rd_end) ;
+    host_req_samp=  new(); 
+    rd_addr=rd_addr_queue.pop_front ; 
+  wr_data= write_data_array[rd_addr];
+    mon2check.get(host_req_samp);
+      if((host_req_samp.req==RD_R) && (host_req_samp.address==rd_addr)) begin 
+        
+  if(host_req_samp.BL==8)
+    begin 
+     rd_data = { data_t[3], data_c[3], data_t[2], 
+    data_c[2], data_t[1], data_c[1], data_t[0], data_c[0]}; // not sure 
+     
+  if(rd_data== wr_data)
+    result= "PASS";
+  else 
+  result= "FAIL";
+   data_check_8: assert (wr_data == rd_data);
+ // $fwrite(file, "%t  Addr: 0x%h  Wr_Data: 0x%h   Rd_Data:0x%h  Result:%s\n", 
+                //  $time, raddr,  data_wr, data_rd, RESULT);
+  // error msg  ;   
+   
+  end 
+  else if(host_req_samp.BL==4)
+  begin 
+  
+rd_data = {'0, data_t[3], data_c[3], data_t[2], 
+    data_c[2]}; // not sure 
+     
+  if(rd_data[31:0]== wr_data)
+    result= "PASS";
+  else 
+  result= "FAIL";
+    data_check_4: assert (wr_data == rd_data);
+ // $fwrite(file, "%t  Addr: 0x%h  Wr_Data: 0x%h   Rd_Data:0x%h  Result:%s\n", 
+            //      $time, raddr,  data_wr, data_rd, result);
+  // error msg  ;   
+   
+
+end 
+ no_transactions++; 
+end
+    end 
+
+endtask 
+
+
+
+  task cap_data_t() ; 
+  forever 
+    begin 
+    @(negedge ddr_intf.dqs_t);
+      
+    if(ctrl_intf.dimm_req==RD_R)
+      begin
+     data_t ={ddr_intf.dq, data_t[4:1]}; 
+      if(ctrl_intf.BL==8) begin 
+      cycle_8 = {cycle_8[3:0], cycle_8[4]};
+       if((cycle_8[4]))
+       rd_end = 1'b1 ; 
+       else 
+       rd_end = 1'b0 ; 
+       
+      end 
+      else begin 
+      cycle_4 = {cycle_4[1:0], cycle_4[2]};  
+       if((cycle_4[2]))
+       rd_end = 1'b1 ; 
+       else 
+       rd_end = 1'b0 ; 
+      end   
+   
+end 
+  end 
+ 
+endtask
+
+ 
+
+  task cap_data_c() ; 
+forever begin 
+@(negedge  ddr_intf.dqs_c)
+  if(ctrl_intf.dimm_req==RD_R)
+  begin
+  data_c <= {ddr_intf.dq, data_c[4:1]};    
+   
+  end
+  
+end 
+ 
+endtask 
+  
+  task cap_rd_data(); 
+     fork
+       cap_data_t() ;
+       cap_data_c() ;
+       
+     join 
+     
+   endtask 
+
+
+
+
+endclass 
