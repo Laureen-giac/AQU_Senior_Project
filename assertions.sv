@@ -24,7 +24,7 @@ module assertions(ddr_interface ddr_intf, ctrl_interface ctrl_intf);
     $rose(ddr_intf.cs_n);
   endsequence 
   
-  property RES_P; //?
+/*  property RES_P; //wrong
     @(posedge ddr_intf.CK_t)
     RESET_S |=> ##[(160000) + (tCKE) + 1 : (160000) +(tCKE) + 2] DES_S; 
   endproperty 
@@ -32,7 +32,7 @@ module assertions(ddr_interface ddr_intf, ctrl_interface ctrl_intf);
   assert property(RES_P)
     else 
       $display("RES P FAILED"); 
-  
+ */ 
  sequence MRS0; 
    (!ddr_intf.cs_n) ##0 (ddr_intf.act_n) ##0 (!ddr_intf.RAS_n_A16) ##0 
    (!ddr_intf.CAS_n_A15) ##0 (!ddr_intf.WE_n_A14) ##0
