@@ -73,7 +73,7 @@ module ctrl_init( ctrl_interface ctrl_intf,ddr_interface ddr_intf, tb_interface 
     repeat(tMRD)@(posedge ddr_intf.CK_t);
     ctrl_intf.mrs_rdy <= 1'b1; 
     ctrl_intf.des_rdy <= 1'b0; 
-    ctrl_intf.mode_reg <={1'b0,3'b100, 1'b0,1'b0,tb_intf.WR_PRE,tb_intf.RD_PRE,1'b0,1'b0,3'b000,1'b0,1'b0,1'b0,1'b0,1'b0}; 
+    ctrl_intf.mode_reg <={1'b0,3'b100, 1'b0,1'b0,tb_intf.WR_PRE,tb_intf.RD_PRE,1'b0,1'b0,3'b000,1'b0,1'b0,1'b0,1'b0,1'b0, 1'b0}; 
     
     @(posedge ddr_intf.CK_t);
     ctrl_intf.des_rdy <= 1'b1; 
@@ -126,4 +126,4 @@ module ctrl_init( ctrl_interface ctrl_intf,ddr_interface ddr_intf, tb_interface 
     ->config_done;  
     endtask 
   
-endmodule 
+endmodule
