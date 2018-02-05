@@ -5,10 +5,10 @@
     which are tRCD: ACT to CAS delay which only comes into play whenever a request
     arrives for a data that is not in an actitve row. and tCCD which is the delay
     from one column access to the next column.
-  CAS: READ OR WRITE
+    CAS: READ OR WRITE
   
-  ERRORS: PREV REQ
-*******************************************************************/
+  ERRORS: PREV REQ:: FIXED 
+***********************************************************************************/
 
 `include "ddr_pkg.pkg"
 
@@ -235,7 +235,7 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
           (req == RDA_R && prev_req == WRA_R))
         begin
           //user programmed refer to waveform
-          extra_wait = ctrl_intf.CL + (2 * ctrl_intf.AL) + ctrl_intf.BL/2 + ctrl_intf.CWL + 2;
+          extra_wait = ctrl_intf.CL - ctrl_intf.AL  - ctrl_intf.CWL + ctrl_intf.BL/2 + 2;
           rtw = 1'b1; 
         end
       else //Write to Read
