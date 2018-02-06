@@ -2,15 +2,12 @@
 `timescale 10ns/1ps
 
 
-module assertions(ddr_interface ddr_intf, ctrl_interface ctrl_intf);
+module assertions(ddr_interface ddr_intf, ctrl_interface ctrl_intf, tb_interface tb_intf);
   
-  parameter CL = 11; //drive from TB; can't use constants in assertions
-  parameter BL = 8;
-  parameter AL = 0;
-  parameter CWL = 9;
-  parameter RD_PRE = 1;
-  parameter WR_PRE = 1;
-  parameter tCCD = 4;
+  parameter CL = tb_intf.CL; //drive from TB; can't use constants in assertions
+  parameter tCCD = tb_intf.tCCD;
+  parameter tCAS_R = 9;
+  parameter AL_DLY = 2'b00;
   
   sequence CKE_ROSE; 
     $rose(ddr_intf.CKE);
@@ -22,17 +19,12 @@ module assertions(ddr_interface ddr_intf, ctrl_interface ctrl_intf);
   
   sequence DES_S; 
     $rose(ddr_intf.cs_n);
-  endsequence 
+  endsequence
   
-/*  property RES_P; //wrong
-    @(posedge ddr_intf.CK_t)
-    RESET_S |=> ##[(160000) + (tCKE) + 1 : (160000) +(tCKE) + 2] DES_S; 
-  endproperty 
-    
-  assert property(RES_P)
-    else 
-      $display("RES P FAILED"); 
- */ 
+  sequence DSQ_S;
+    $fell (ddr_intf.dqs_t) ##0 $rose(ddr_intf.dqs_c);
+  endsequence  
+  
  sequence MRS0; 
    (!ddr_intf.cs_n) ##0 (ddr_intf.act_n) ##0 (!ddr_intf.RAS_n_A16) ##0 
    (!ddr_intf.CAS_n_A15) ##0 (!ddr_intf.WE_n_A14) ##0
@@ -88,7 +80,7 @@ endsequence
   
   property CKE_P; 
     @(posedge ddr_intf.CK_t) 
-    RESET_S |-> ##[(tCKE - tIS) :$] CKE_ROSE; 
+    RESET_S |-> (##[(tCKE - tIS):$]CKE_ROSE); 
   endproperty 
   
   property INIT_SEQ_P;
@@ -137,7 +129,7 @@ endsequence
     REF_S |=> ##[(tREFI) : (tREFI + 4)] REF_S; 
   endproperty 
   
- // can't assert tRFC, cant predict next valid cmd 
+ // can't write assertion for tRFC, cant predict next valid cmd 
   
   sequence RD_S;
     (!ddr_intf.cs_n) ##0 (ddr_intf.act_n)##0 (ddr_intf.RAS_n_A16) ##0 
@@ -156,11 +148,12 @@ endsequence
     ACT_S |=> ((##[tRCD:$] WR_S) or (##[tRCD:$] RD_S)); 
   endproperty 
   
+
   //write to write or write to read 
   
   property tCCDW_P;
     @(posedge ddr_intf.CK_t)
-    WR_S |=> ((##[tRCD:$] WR) or ( ##[(tWTR + 4):$] RD_S));
+    WR_S |=> ((##[tCCD:$] WR) or ( ##[(tWTR + 4):$] RD_S));
 endproperty
   
   
@@ -168,12 +161,27 @@ endproperty
   
   property tCCDR_P; 
     @(posedge ddr_intf.CK_t) 
-    RD_S |=> ((##[tCCD:$] RD_S) or (##[(CL + (2 * AL) + BL/2 + CWL + 2) : $] WR_S));
+    RD_S |=> ((##[tCCD:$] RD_S) or (##[(tCCD + tWTR + 4) : $] WR_S));
   endproperty 
-                        
   
+  property RD_TO_PRE; 
+    @(posedge ddr_intf.CK_t)
+    RD_S |=> (tCCDR_P or (##[tRTP : $] PRE_S));
+  endproperty 
+  
+  property WR_TO_PRE;
+    @(posedge ddr_intf.CK_t)
+    WR_S |=> (tCCDW_P or ( ##[(tWTR + 4 + tWR):$] PRE_S));
+  endproperty
+  
+  assert property(CKE_P)
+   $display("CKE PROPERTY SUCCESS at %0tns", $time); 
+  else
+    $display("CKE PROPERTY FAILED at %0tns", $time);
+   
 /*
-assert property(INIT_SEQ_P) 
+
+  assert property(INIT_SEQ_P) 
    $display("INITIALIZATION PROPERTY SUCCESS at %0tns", $time);
    else
     $display("INITIALIZATION PROPERTY FAILED at %0tns ", $time);
@@ -200,18 +208,34 @@ assert property(INIT_SEQ_P)
    $display("tREFI: REF to REF delay SUCCESS at %0tns", $time);
    else 
     $display("tREFI: REF to REF delay FAILED at %0tns", $time); 
-      
+       
   
- assert property(tCCDR_P) 
-   $display("tRCD: RAS to CAS delay SUCCESS at %0tns", $time); 
+  assert property(tCCD_P) 
+    $display("tCCD: Read:: RAS to CAS delay SUCCESS at %0tns", $time); 
     else
-     $display("tRCD: RAS to CAS delay FAILED at %0tns", $time); 
-      
- assert property(CKE_P)
-  $display("CKE PROPERTY SUCCESS at %0tns", $time); 
+      $display("tCCD: Read:: RAS to CAS delay FAILED at %0tns", $time); 
+    
+  assert property(tCCDR_P) 
+    $display("tCCD: Write:: RAS to CAS delay SUCCESS at %0tns", $time); 
+   else
+     $display("tCCD: Write:: RAS to CAS delay FAILED at %0tns", $time); 
+     
+  assert property(CKE_P)
+   $display("CKE PROPERTY SUCCESS at %0tns", $time); 
   else
-   $display("CKE PROPERTY FAILED at %0tns", $time);
+    $display("CKE PROPERTY FAILED at %0tns", $time);
+    
+   assert property(RD_TO_PRE)
+     $display("tRTP: Read to Precharge delay SUCCESS at %0tns", $time); 
+   else
+    $display("tRTP: Read to Precharge delay FAILED at %0tns", $time);
+    
+   assert property(WR_TO_PRE)
+     $display("tRTP: Read to Precharge delay SUCCESS at %0tns", $time); 
+    else
+     $display("tRTP: Read to Precharge delay FAILED at %0tns", $time); 
+    
   
-  */  
+  */ 
 
 endmodule
