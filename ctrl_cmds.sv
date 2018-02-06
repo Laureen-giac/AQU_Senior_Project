@@ -167,6 +167,7 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
         ||(ctrl_intf.rda_rdy)
         ||(ctrl_intf.wra_rdy)
         ||(ctrl_intf.mrs_rdy)
+        ||(ctrl_intf.cas_rdy)  
         ||(ctrl_intf.refresh_rdy)
         ||(ctrl_intf.pre_rdy)
         ||(ctrl_intf.zqcl_rdy)
