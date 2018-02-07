@@ -2,10 +2,10 @@
 `timescale 10ns/1ps
 
 
-module assertions(ddr_interface ddr_intf, ctrl_interface ctrl_intf, tb_interface tb_intf);
+module assertions(ddr_interface ddr_intf, ctrl_interface ctrl_intf);
   
-  parameter CL = tb_intf.CL; //drive from TB; can't use constants in assertions
-  parameter tCCD = tb_intf.tCCD;
+  parameter CL = 9; //drive from TB; can't use constants in assertions
+  parameter tCCD = 4;
   parameter tCAS_R = 9;
   parameter AL_DLY = 2'b00;
   
