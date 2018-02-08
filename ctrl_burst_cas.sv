@@ -208,8 +208,8 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
       if (((ctrl_intf.act_rdy) || (ctrl_intf.no_act_rdy))  && 
        ((cas_state != CAS_IDLE)  && (cas_state != CAS_CMD))) 
         begin
-          act_cmd_trk.push_back(ctrl_intf.act_rw);
-          act_rw_trk.push_back(cas_delay - cas_counter); 
+          act_cmd_trk.push_back(cas_delay - cas_counter);
+          act_rw_trk.push_back(ctrl_intf.act_rw); 
         end       
     end 
 
