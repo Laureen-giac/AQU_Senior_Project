@@ -216,7 +216,7 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
 
   always_ff@(posedge ddr_intf.CK_t)
     begin
-      if(act_cmd_trk.size() != 0 )
+      if((cas_state == CAS_CMD) &&(act_rw_trk.size() != 0))
         begin
           next_cas = 1'b1;
         end
