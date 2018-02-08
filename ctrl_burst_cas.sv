@@ -131,7 +131,7 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
 
               if(next_cas)
                 begin
-                  cas_next_state <= CAS_WAIT_CAS;
+                  cas_next_state <= CAS_WAIT_ACT;
                 end
 
               else
@@ -197,8 +197,8 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
           
           request   = act_cmd_trk.pop_front;
      
-          foreach (act_cmd_trk[i]) 
-            act_cmd_trk [i] = {(act_cmd_trk[i] + cas_delay +1 )};
+         foreach (act_rw_trk[i]) 
+          act_rw_trk[i] = {(act_rw_trk[i] + cas_delay +1 )};
         end
     end
   
