@@ -131,12 +131,12 @@ module ctrl_rw(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
 
           if(cas_cmd_out == RD_R)begin
 
-            delay = ctrl_intf.CL+ctrl_intf.AL  + ctrl_intf.RD_PRE ;
+            delay = ctrl_intf.CL+ctrl_intf.AL  - ctrl_intf.RD_PRE ;
           end
 
         else
           begin
-          delay= ctrl_intf.CWL + ctrl_intf.AL + ctrl_intf.WR_PRE;
+          delay= ctrl_intf.CWL + ctrl_intf.AL - ctrl_intf.WR_PRE;
           end
 
         rw_delay =  delay - cas_command_track.pop_front;
