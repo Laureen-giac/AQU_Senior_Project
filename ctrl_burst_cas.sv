@@ -188,14 +188,14 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
       
       else if ((cas_state == CAS_CMD) && (next_cas)) 
         begin
-          temp = (tRCD - act_cmd_trk.pop_front - 1);
+         temp = (tRCD - act_rw_trk.pop_front - 1);
           
           if (temp > ctrl_intf.tCCD)
             cas_delay = temp;
           else
             cas_delay = ctrl_intf.tCCD;
           
-          request   = act_rw_trk.pop_front;
+          request   = act_cmd_trk.pop_front;
      
           foreach (act_cmd_trk[i]) 
             act_cmd_trk [i] = {(act_cmd_trk[i] + cas_delay +1 )};
@@ -208,8 +208,8 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
       if (((ctrl_intf.act_rdy) || (ctrl_intf.no_act_rdy))  && 
        ((cas_state != CAS_IDLE)  && (cas_state != CAS_CMD))) 
         begin
-          act_cmd_trk.push_back(cas_delay - cas_counter);
-          act_rw_trk.push_back(ctrl_intf.act_rw); 
+          act_rw_trk.push_back(cas_delay - cas_counter);
+          act_cmd_trk.push_back(ctrl_intf.act_rw); 
         end       
     end 
 
