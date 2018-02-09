@@ -14,7 +14,7 @@ class host_req;
   bit[63:0] rd_data; 
   
   function void display(); 
-    $display("Host Request"); 
+    $display("From System Host"); 
     $display("Host Request is a %d", request); 
     $display("Memory Address is %h", log_addr); 
     $display("Memory Data is %h", wr_data); 
