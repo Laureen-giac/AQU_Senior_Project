@@ -1,50 +1,54 @@
-`define DRIVER tb_intf.DRIVER.driver_cb
+`define DRIVER tb_intf.DRIVER
 `include "ddr_pkg.pkg"
 
 class driver;
   
   mailbox gen2dvr;
-  int no_trans = 0;
-  host_req gen_req; 
+  int no_trans = 0; 
   virtual tb_interface tb_intf;
-  virtual ddr_interface ddr_intf; 
-  
+  virtual ddr_interface ddr_intf;
+  virtual ctrl_interface ctrl_intf;
   
   function new(input mailbox gen2dvr, 
-               input virtual tb_interface tb_intf); 
+               input virtual tb_interface tb_intf, 
+               input virtual ddr_interface ddr_intf,
+               input virtual ctrl_interface ctrl_intf); 
     
     this.gen2dvr = gen2dvr; 
-    this.tb_intf = tb_intf; 
+    this.tb_intf = tb_intf;  
+    this.ddr_intf = ddr_intf; 
+    this.ctrl_intf = ctrl_intf; 
  
   endfunction 
   
+  task reset(); 
+    wait(ddr_intf.reset_n); 
+    tb_intf.CL <= 3'b010;
+    tb_intf.driver_cb.BL <= 2'b00;
+    tb_intf.driver_cb.AL <= 2'b11;
+    tb_intf.driver_cb.CWL <= 3'b000;
+    tb_intf.driver_cb.RD_PRE <= 1'b1;
+    tb_intf.driver_cb.WR_PRE <= 1'b1;
+    wait(ctrl_intf.ini_done);
+    $display("Reset done at %t", $time); 
+  endtask 
+  
   /* Get requests from generator, and send to DUT
   */
-  task run();
-    host_req gen_req;
-    tb_intf.rd_data <=  '0; 
-    tb_intf.wr_data <=  'z; 
-    tb_intf.log_addr <= 'x; 
-    tb_intf.request <= NOP_R;
-    tb_intf.CL <= '0;
-    tb_intf.AL <= '0;
-    tb_intf.CWL <= '0;
-    tb_intf.RD_PRE <= '0;
-    tb_intf.WR_PRE <= '0;
-     
-    forever
-      begin 
-        @(posedge tb_intf.cmd_rdy); 
-        gen2dvr.get(gen_req);
-        `DRIVER.log_addr <= gen_req.log_addr;
-        `DRIVER.request <= gen_req.request;
-        //if(gen_req.request == WR_R || gen_req.request == WRA_R)
-        `DRIVER.wr_data <= gen_req.wr_data; 
-        //else `DRIVER.wr_data <= 'z; 
-        $display("-----------------------------"); 
-        $display("@%0t:DRIVER%0d", $time, no_trans); 
+  task run(input int no_reqs);
+    repeat(no_reqs)
+      begin  
+        host_req gen_req;
+         gen2dvr.get(gen_req);
+        @(negedge ddr_intf.CK_t);
+        @(posedge tb_intf.cmd_rdy);
+        `DRIVER.driver_cb.log_addr <= gen_req.log_addr;
+        `DRIVER.driver_cb.request <= gen_req.request;
+        `DRIVER.driver_cb.wr_data <= gen_req.wr_data;
+        no_trans++; 
         $display("Host Address:%0h\nRequest:%0h\nWrite Data:%0h\n",gen_req.log_addr, gen_req.request, gen_req.wr_data);
-        this.no_trans++; 
+        
+       // $display("%d", no_trans);
       end 
   endtask 
   
