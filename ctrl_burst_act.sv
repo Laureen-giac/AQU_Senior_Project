@@ -6,7 +6,7 @@
   *A row hit is an open row.
   *A row miss is a closed row in an open bank
   *An empty page is a closed bank
-*******************************************************************/
+*************************************************************************************/
 
 
 `include "ddr_pkg.pkg"
@@ -96,15 +96,15 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
 
       else
         begin
-        case(current_activate_state)
+       case(current_activate_state)
           ACTIVATE_IS_IDLE : begin
             act_rdy <= 1'b0;
             no_act <= 1'b0;
             ctrl_intf.pre_rdy <= 1'b0;
             ctrl_intf.act_idle <= 1'b1;
-            bank_init <= 0 ;
+            bank_init <= 0; 
 
-            if((tb_intf.cmd_rdy) && (tb_intf.rw_proc)) begin
+            if((tb_intf.cmd_rdy) && (tb_intf.rw_proc)) begin 
               next_activate_state <=  ACTIVATE_WAIT_STATE ;
               check_for_activated_bank ();
             end
@@ -115,11 +115,14 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
             act_rdy <= 1'b0 ;
             clear_activate_counter <= 1'b0 ;
             ctrl_intf.act_idle <= 1'b0 ;
-            ctrl_intf.pre_rdy <= 1'b0 ;
+            ctrl_intf.pre_rdy <= 1'b0;
 
             if( (activate_counter== tRRD)  && ( hit ) && (!miss)) begin
               next_activate_state <=  ACTIVATE_CAS ;
-              ctrl_intf.act_rw  <= ctrl_intf.req;
+              if(ctrl_intf.req) begin
+                ctrl_intf.act_rw  <= ctrl_intf.req;
+                $display("act_hit %h", ctrl_intf.act_rw);
+              end
               no_act <= 1'b1;
             end
 
@@ -132,9 +135,13 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
                begin
                  act_rdy <=  1'b1;
                  next_activate_state <=  ACTIVATE_COMMAND ;
+                 //here
+                 if(ctrl_intf.req) begin 
                  ctrl_intf.act_rw  <= ctrl_intf.req;
-
+                   $display("act_empty %h", ctrl_intf.req); 
+                 end 
                end
+               
 
          else begin
               next_activate_state <=  ACTIVATE_WAIT_STATE;
@@ -186,7 +193,8 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
             if( activate_counter == tRP)begin
               act_rdy <= 1 ;
               ctrl_intf.act_rw  <= ctrl_intf.req;
-               next_activate_state <= ACTIVATE_COMMAND ;
+              $display("act_miss %h", ctrl_intf.act_rw); 
+              next_activate_state <= ACTIVATE_COMMAND ;
           end
 
           end
