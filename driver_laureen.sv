@@ -47,7 +47,12 @@ class driver;
         `DRIVER.driver_cb.wr_data <= gen_req.wr_data;
         no_trans++; 
         $display("Host Address:%0h\nRequest:%0h\nWrite Data:%0h\n",gen_req.log_addr, gen_req.request, gen_req.wr_data);
-      end 
+      end
+    @(posedge tb_intf.cmd_rdy);
+    `DRIVER.driver_cb.log_addr <= 'x;
+    `DRIVER.driver_cb.request <= 'x;
+    `DRIVER.driver_cb.wr_data <= 'x;
+   
   endtask 
   
 endclass 
