@@ -129,12 +129,15 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
          ctrl_intf.dimm_req = WR_R; 
        end 
      
+     
      if(ctrl_intf.mrs_rdy)
        begin
          cmd_out.cmd = MRS;
-         cmd_out.req.phy_addr = rw_cmd_out.phy_addr;
+         cmd_out.req.phy_addr.bg_addr = ctrl_intf.mode_reg[18:17];
+         cmd_out.req.phy_addr.ba_addr = ctrl_intf.mode_reg[16:15];
+       
        end
-
+    
      if(ctrl_intf.refresh_rdy)
        begin
          cmd_out.cmd = REF;
