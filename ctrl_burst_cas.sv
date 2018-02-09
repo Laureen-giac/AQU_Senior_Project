@@ -183,8 +183,11 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
        ((ctrl_intf.act_rdy)     || (ctrl_intf.no_act_rdy))) 
         begin
           cas_delay = tRCD - 1;
-          request   = ctrl_intf.act_rw;
+          if(ctrl_intf.act_rw) begin 
+            request   = ctrl_intf.act_rw;
+          end 
         end 
+      
       
       else if ((cas_state == CAS_CMD) && (next_cas)) 
         begin
