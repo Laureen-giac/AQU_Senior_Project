@@ -47,8 +47,6 @@ class driver;
         `DRIVER.driver_cb.wr_data <= gen_req.wr_data;
         no_trans++; 
         $display("Host Address:%0h\nRequest:%0h\nWrite Data:%0h\n",gen_req.log_addr, gen_req.request, gen_req.wr_data);
-        
-       // $display("%d", no_trans);
       end 
   endtask 
   
