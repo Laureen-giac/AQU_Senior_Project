@@ -36,27 +36,34 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
       always_comb
         begin
           if(tb_intf.cmd_rdy && !ctrl_intf.busy) begin
+             
             phy_addr = address_decode(tb_intf.log_addr, phy_addr); //GEN; pass ref.
-            ctrl_intf.mem_addr = phy_addr;
-            ctrl_intf.req = tb_intf.request;
-          end
+            if(phy_addr) begin
+              ctrl_intf.mem_addr = phy_addr;
+              ctrl_intf.req = tb_intf.request;
+            end 
+            else begin 
+              ctrl_intf.mem_addr = 'x; 
+              ctrl_intf.req = 'x;
+            end
+          end 
         end 
       
       always_comb
         begin
-          if(ctrl_intf.act_rdy || ctrl_intf.no_act_rdy) 
-            begin 
-              host_req.phy_addr = ctrl_intf.mem_addr;
-              host_req.request = ctrl_intf.req; //GEN
-              rw_cmd_queue.push_back(host_req); 
-            end 
+          if(ctrl_intf.act_rdy || ctrl_intf.no_act_rdy) begin
+            host_req.phy_addr = ctrl_intf.mem_addr;
+            host_req.request = ctrl_intf.req; //GEN
+            if(host_req.phy_addr) 
+              rw_cmd_queue.push_back(host_req);
+          end
         end
-
-  always_ff@(posedge ctrl_intf.cas_rdy) 
-    begin 
+  
+  always_ff@(posedge ctrl_intf.cas_rdy) begin
+    if(rw_cmd_queue.size() != 0 ) begin 
       rw_cmd_out = rw_cmd_queue.pop_front();
-     // $display("Popping %h ", rw_cmd_out.request); 
-    end
+    end 
+  end 
     
   /* Generating the commands is combo logic
   */
