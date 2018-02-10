@@ -70,7 +70,8 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
                 end
             end
 
-            CAS_WAIT_ACT: begin
+             CAS_WAIT_ACT: begin
+              if(ctrl_intf.act_rw) begin 
               clear_cas_counter <= 1'b0;
               if(cas_counter == cas_delay)
                 begin
@@ -101,7 +102,10 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
                       else 
                         cas_next_state <= CAS_EXTRA_WAIT;  
                     end 
-                end 
+                end
+              end 
+              else 
+                cas_next_state <= CAS_WAIT_ACT; 
             end 
             
             CAS_WAIT_DATA: begin 
