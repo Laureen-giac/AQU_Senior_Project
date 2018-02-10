@@ -172,7 +172,7 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
 
   //
   
-  always @ (negedge ddr_intf.reset_n,posedge  ctrl_intf.act_rdy,posedge   ctrl_intf.no_act_rdy,posedge next_cas)
+ always @ (ddr_intf.reset_n, ctrl_intf.act_rdy, ctrl_intf.no_act_rdy, next_cas)
     begin
       int temp;
       if (!ddr_intf.reset_n) 
