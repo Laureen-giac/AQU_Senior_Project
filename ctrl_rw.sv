@@ -146,7 +146,7 @@ module ctrl_rw(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
 
       end
 
-      if ((current_rw_state == RW_DATA) && (ctrl_intf.cas_rdy))
+     else if ((current_rw_state == RW_DATA) && (ctrl_intf.cas_rdy))
         begin
           cas_command_track ={cas_command_track , rw_delay };
           cas_type_track={cas_type_track, ctrl_intf.cas_req};
