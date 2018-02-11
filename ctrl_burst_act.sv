@@ -118,7 +118,7 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
             ctrl_intf.pre_rdy <= 1'b0;
 
             if( (activate_counter== tRRD)  && ( hit ) && (!miss)) begin
-              next_activate_state <=  ACTIVATE_CAS ;
+            
               if(ctrl_intf.req) begin
                 ctrl_intf.act_rw  <= ctrl_intf.req;
                 next_activate_state <=  ACTIVATE_CAS ;
