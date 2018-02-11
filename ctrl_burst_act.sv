@@ -121,9 +121,11 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
               next_activate_state <=  ACTIVATE_CAS ;
               if(ctrl_intf.req) begin
                 ctrl_intf.act_rw  <= ctrl_intf.req;
+                next_activate_state <=  ACTIVATE_CAS ;
                 $display("act_hit %h", ctrl_intf.act_rw);
+               no_act <= 1'b1;
               end
-              no_act <= 1'b1;
+              
             end
 
             else
