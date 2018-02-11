@@ -216,7 +216,10 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
        ((cas_state != CAS_IDLE)  && (cas_state != CAS_CMD))) 
         begin
           act_rw_trk.push_back(cas_delay - cas_counter);
+          if(ctrl_intf.act_rw) begin 
           act_cmd_trk.push_back(ctrl_intf.act_rw); 
+     //  $display("ctrl_intf.act_rw is %b", ctrl_intf.act_rw);
+          end 
         end       
     end 
 
