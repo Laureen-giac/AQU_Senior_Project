@@ -16,7 +16,7 @@ class monitor;
   endfunction
 
   task run(input int no_req);
-    repeat(no_req)
+    repeat(no_req+1)
       begin
         receive(gen_req);
       end 
@@ -32,9 +32,11 @@ class monitor;
       gen_req.request = `MONITOR.monitor_cb.request;
       gen_req.BL = `MONITOR.monitor_cb.BL;
       gen_req.wr_data = `MONITOR.monitor_cb.wr_data;
+    if(gen_req.log_addr && gen_req.request && gen_req.wr_data ) begin 
       $display("Host Address:%0h\nRequest:%0h\nWrite Data:%0h\n", gen_req.log_addr, gen_req.request, gen_req.wr_data);
       mon2sb.put(gen_req);
       no_trans++; 
+    end 
   endtask
 
 endclass
