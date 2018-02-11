@@ -96,7 +96,7 @@ module ctrl_rw(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
     end
 
 
-  always@(ctrl_intf.cas_rdy , new_data, ddr_intf.reset_n, new_data)
+  always@(ctrl_intf.cas_rdy , new_data, ddr_intf.reset_n)
     begin
       if(!ddr_intf.reset_n) begin
         cas_command_track.delete() ;
