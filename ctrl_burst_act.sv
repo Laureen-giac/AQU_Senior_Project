@@ -121,10 +121,11 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
             
               if(ctrl_intf.req) begin
                 ctrl_intf.act_rw  <= ctrl_intf.req;
-                next_activate_state <=  ACTIVATE_CAS ;
+                
                 $display("act_hit %h", ctrl_intf.act_rw);
                no_act <= 1'b1;
               end
+             next_activate_state <=  ACTIVATE_CAS ;
               
             end
 
@@ -135,13 +136,14 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
            else
              if((activate_counter== tRRD)  && (!miss)  && (!hit))
                begin
-                 act_rdy <=  1'b1;
-                 next_activate_state <=  ACTIVATE_COMMAND ;
+                
                  //here
                  if(ctrl_intf.req) begin 
                  ctrl_intf.act_rw  <= ctrl_intf.req;
+                  act_rdy <=  1'b1;
                    $display("act_empty %h", ctrl_intf.req); 
                  end 
+                next_activate_state <=  ACTIVATE_COMMAND ;
                end
                
 
@@ -193,9 +195,12 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
           AFTER_PRECHARGE_CMD_DELAY : begin
             clear_activate_counter <= 1'b0 ;
             if( activate_counter == tRP)begin
-              act_rdy <= 1 ;
+             
+             if(ctrl_intf.req) begin 
               ctrl_intf.act_rw  <= ctrl_intf.req;
+             act_rdy <= 1 ;
               $display("act_miss %h", ctrl_intf.act_rw); 
+             end
               next_activate_state <= ACTIVATE_COMMAND ;
           end
 
