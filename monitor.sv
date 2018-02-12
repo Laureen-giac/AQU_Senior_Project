@@ -16,15 +16,15 @@ class monitor;
   endfunction
 
   task run(input int no_req);
-    repeat(no_req+1)
+    repeat(no_req)
       begin
         receive(gen_req);
       end 
   endtask
 
   task receive(output host_req gen_req);
-    @(`MONITOR.monitor_cb iff 
-      tb_intf.cmd_rdy);
+     @(posedge tb_intf.cmd_rdy);
+     repeat(2) @(negedge ddr_intf.CK_t);
       $display("-----------------------------");
       $display("@%0t:MONITOR%d", $time, no_trans);
       gen_req = new(); 
