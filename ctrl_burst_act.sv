@@ -145,9 +145,9 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
                end
                
 
-         else begin
-              next_activate_state <=  ACTIVATE_WAIT_STATE;
-            end
+         //else begin
+            //  next_activate_state <=  ACTIVATE_WAIT_STATE;
+           // end
           end
 
           ACTIVATE_COMMAND: begin
