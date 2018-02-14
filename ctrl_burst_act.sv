@@ -114,21 +114,19 @@ module ctrl_burst_act(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inter
             no_act <= 1'b0 ;
             act_rdy <= 1'b0 ;
             clear_activate_counter <= 1'b0 ;
-            ctrl_intf.act_idle <= 1'b0 ;
+            ctrl_intf.act_idle <= 1'b0;
             ctrl_intf.pre_rdy <= 1'b0;
 
             if( (activate_counter== tRRD)  && ( hit ) && (!miss)) begin
-            
-              if(ctrl_intf.req) begin
+              //if(ctrl_intf.req) begin
                 ctrl_intf.act_rw  <= ctrl_intf.req;
-                
-                $display("act_hit %h", ctrl_intf.act_rw);
-               no_act <= 1'b1;
-              end
-             next_activate_state <=  ACTIVATE_CAS ;
-              
+                next_activate_state <=  ACTIVATE_CAS ;
+               // $display("act_hit %h", ctrl_intf.act_rw);
+              //end
+              //else 
+               // next_activate_state <= ACTIVATE_WAIT_STATE; 
+              no_act <= 1'b1;
             end
-
             else
               if( (activate_counter== tRRD)  && (miss ) && (!hit))
               next_activate_state <=  PRECHARGE_WAIT_DATA ;
