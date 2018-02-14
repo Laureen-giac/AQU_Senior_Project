@@ -33,26 +33,31 @@ class driver;
     $display("Reset done at %t", $time); 
   endtask 
   
+   
   /* Get requests from generator, and send to DUT
   */
-  task run(input int no_reqs);
-    repeat(no_reqs)
-      begin  
-        host_req gen_req;
-         gen2dvr.get(gen_req);
-        @(negedge ddr_intf.CK_t);
-        @(posedge tb_intf.cmd_rdy);
-        `DRIVER.driver_cb.log_addr <= gen_req.log_addr;
-        `DRIVER.driver_cb.request <= gen_req.request;
-        `DRIVER.driver_cb.wr_data <= gen_req.wr_data;
-        no_trans++; 
-        $display("Host Address:%0h\nRequest:%0h\nWrite Data:%0h\n",gen_req.log_addr, gen_req.request, gen_req.wr_data);
+  task run();
+    forever begin  
+      host_req gen_req;
+      @(posedge ddr_intf.CK_t);
+      if(ctrl_intf.act_idle && !ctrl_intf.busy) begin 
+      tb_intf.cmd_rdy <= 1'b1; 
+      @(posedge ddr_intf.CK_t);  
+      gen2dvr.get(gen_req);  
+      `DRIVER.driver_cb.log_addr <= gen_req.log_addr;
+      `DRIVER.driver_cb.request <= gen_req.request;
+      `DRIVER.driver_cb.wr_data <= gen_req.wr_data; 
+      no_trans++;   
+      tb_intf.cmd_rdy <=  1'b0;
+      $display("DRIVER:: Host Address:%0h\nRequest:%0h\nWrite Data:%0h\n",gen_req.log_addr, gen_req.request, gen_req.wr_data);
       end
-    @(posedge tb_intf.cmd_rdy);
+    end 
+    /*
     `DRIVER.driver_cb.log_addr <= 'x;
     `DRIVER.driver_cb.request <= 'x;
     `DRIVER.driver_cb.wr_data <= 'x;
-   
+   */
+  endtask 
   endtask 
   
 endclass 
