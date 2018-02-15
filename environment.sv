@@ -12,8 +12,7 @@ class environment;
   //scoreboard sb; 
   mailbox gen2dvr; 
   mailbox gen2sb; 
-  mailbox mon2sb;
-  event env_stop; 
+  mailbox mon2sb; 
   virtual tb_interface tb_intf; 
   virtual ddr_interface ddr_intf; 
   virtual ctrl_interface ctrl_intf;
@@ -37,7 +36,8 @@ class environment;
               .ctrl_intf(ctrl_intf));
     
     mon = new(.mon2sb(mon2sb), 
-              .tb_intf(tb_intf));
+              .tb_intf(tb_intf), 
+              .ddr_intf(ddr_intf));
     
   //  sb = new(.mon2sb(mon2sb), 
             // .tb_intf(tb_intf)); 
@@ -52,16 +52,27 @@ class environment;
   
   task run(); 
     fork
-      gen.run(7); 
-      drv.run(7);
-      mon.run(7); 
+      gen.run(10); 
+      drv.run();
+     // mon.run(); 
      //sb.main(5); 
-    join
+    join_any
+   // disable fork; 
   endtask
   
   task stop();
-    #5ns $finish;
+    wait(gen.no_trans == drv.no_trans);
+    //wait(gen.no_trans == mon.no_trans); 
+    $display("%h", tb_intf.cmd_rdy); 
+    $finish; 
   endtask 
   
 
 endclass 
+  
+  
+  
+  
+  
+  
+  
