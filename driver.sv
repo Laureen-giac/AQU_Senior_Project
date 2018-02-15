@@ -43,7 +43,7 @@ class driver;
         tb_intf.cmd_rdy <=  1'b0;
         @(posedge ddr_intf.CK_t);
         if(ctrl_intf.act_idle && !ctrl_intf.busy) begin 
-          if(gen2drv.num() != 0) begin  
+          if(gen2dvr.num() != 0) begin  
          tb_intf.cmd_rdy <= 1'b1; 
          @(posedge ddr_intf.CK_t);  
          gen2dvr.get(gen_req);  
