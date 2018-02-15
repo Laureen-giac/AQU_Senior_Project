@@ -4,12 +4,13 @@ class generator;
   mailbox gen2drv; 
   
   int no_trans = 0; 
+  int no_reqs ;
   
  function new(input mailbox gen2drv);
    this.gen2drv = gen2drv;  
  endfunction
   
-  task run(input int no_reqs); 
+  task run(); 
     repeat(no_reqs) 
       begin   
         gen_req = new();
