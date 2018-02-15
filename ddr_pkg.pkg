@@ -46,7 +46,7 @@ ctrl_fsm_type;
   typedef logic[ADDR_WIDTH-1:0] host_address;
   typedef logic [MRS_WIDTH -1:0] mode_register_type;
   typedef logic[8*DATA_WIDTH-1:0] write_data; 
-  typedef logic[BG_WIDTH + BA_WIDTH + RA_WIDTH + CA_WIDTH] dimm_addr; 
+  typedef logic[27:0] dimm_addr; 
 
 
   typedef struct packed { 
