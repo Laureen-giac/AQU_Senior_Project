@@ -61,10 +61,18 @@ class environment;
   endtask
   
   task stop();
+     wait(gen.ended.triggered);
     wait(gen.no_trans == drv.no_trans);
     //wait(gen.no_trans == mon.no_trans); 
     $display("%h", tb_intf.cmd_rdy); 
-    $finish; 
+    //$finish; 
+  endtask 
+  
+   task test();
+    reset();
+    run(); 
+    stop();
+    #20 $finish ; 
   endtask 
   
 
