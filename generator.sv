@@ -4,6 +4,7 @@ class generator;
   mailbox gen2drv; 
   mailbox gen2sb; 
   int no_trans = 0; 
+  event ended ; 
   
   function new(input mailbox gen2drv, mailbox gen2sb);
    this.gen2drv = gen2drv; 
@@ -28,6 +29,7 @@ class generator;
             $fatal("Randomization failed");
           end 
       end
+    -> ended ;
   endtask
   
 endclass 
