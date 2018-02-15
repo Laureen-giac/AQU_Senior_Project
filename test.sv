@@ -7,9 +7,9 @@ program automatic test(tb_interface tb_intf, ddr_interface ddr_intf, ctrl_interf
   initial 
     begin 
       env = new(tb_intf, ddr_intf, ctrl_intf); 
-      env.reset(); 
-      env.run();
-      env.stop(); 
+      env.gen.no_reqs= 5;
+      env.test(); 
+      
     end 
   
 endprogram 
