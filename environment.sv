@@ -52,7 +52,7 @@ class environment;
   
   task run(); 
     fork
-      gen.run(10); 
+      gen.run(); 
       drv.run();
      // mon.run(); 
      //sb.main(5); 
