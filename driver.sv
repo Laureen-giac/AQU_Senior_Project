@@ -43,6 +43,7 @@ class driver;
         tb_intf.cmd_rdy <=  1'b0;
         @(posedge ddr_intf.CK_t);
         if(ctrl_intf.act_idle && !ctrl_intf.busy) begin 
+          if(gen2drv.num() != 0) begin  
          tb_intf.cmd_rdy <= 1'b1; 
          @(posedge ddr_intf.CK_t);  
          gen2dvr.get(gen_req);  
@@ -57,7 +58,7 @@ class driver;
         //$display("DRIVER%d:: Host Address:%0h\nRequest:%0h\nWrite Data:%0h\n",no_trans, gen_req.log_addr, gen_req.request, gen_req.wr_data);
       end
       end 
-    
+      end 
     /*`DRIVER.driver_cb.log_addr <= 'x;
     `DRIVER.driver_cb.request <= 'x;
     `DRIVER.driver_cb.wr_data <= 'x;
