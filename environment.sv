@@ -56,8 +56,7 @@ class environment;
       drv.run();
      // mon.run(); 
      //sb.main(5); 
-    join_any
-   // disable fork; 
+    join_any 
   endtask
   
   task stop();
