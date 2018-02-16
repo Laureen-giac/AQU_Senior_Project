@@ -114,7 +114,7 @@ module dimm_model(ddr_interface ddr_intf,
   
   always_ff@(posedge ddr_intf.CK_c) 
     begin 
-      if(((wr_end || rd_start )) &&
+      if(((wr_end || ddr_intf.rd_start )) &&
          (act_addr_store.size != 0)) 
         begin 
           row_addr <= act_addr_store.pop_front(); 
