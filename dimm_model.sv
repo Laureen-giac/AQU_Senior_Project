@@ -7,7 +7,7 @@ module dimm_model(ddr_interface ddr_intf,
   parameter MRS_C = 5'b01000; 
   parameter REF_c = 5'b01001; 
   parameter PRE_C = 5'b10101; 
-  parameter ACT_C = 5'b00111; 
+  parameter ACT_C = 2'b00; 
   parameter WR_C = 5'b01100; 
   parameter RD_C = 5'b01101; 
   parameter NOP_C = 5'b1xxxx; 
