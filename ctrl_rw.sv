@@ -104,7 +104,7 @@ module ctrl_rw(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
 
       else if((current_rw_state ==RW_IDLE) && (ctrl_intf.cas_rdy)) begin
 
-        cas_cmd_out =ctrl_intf.act_rw;
+        cas_cmd_out =ctrl_intf.cas_req;
         
         if(cas_cmd_out == RD_R) begin
           delay = ctrl_intf.CL + ctrl_intf.AL - ctrl_intf.RD_PRE ;
