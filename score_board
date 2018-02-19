@@ -1,10 +1,10 @@
 class Score_board ;
-mailbox mon2check ; 
+mailbox mon2sb ; 
 virtual ddr_interface ddr_intf;
-  virtual tb_interface tb_intf;
 virtual ctrl_interface ctrl_intf ;
+  virtual tb_interface tb_intf ;
 // i need to have a acopy from gen2driv
-mailbox gen2driv ; 
+mailbox gen2sb ; 
  //i have to maintain ana array to  store the write data 
  write_data write_data_array[dimm_addr]; 
  write_data wr_data , rd_data ;  
@@ -15,6 +15,8 @@ mailbox gen2driv ;
  logic [4:0][7:0] data_c,data_t;
  bit [4:0]cycle_8 = 5'b10000;
 bit [2:0]cycle_4 = 5'b100;
+  int no_trans ;
+  int no_trans2 ; 
  
  mem_addr_type rd_addr ; 
  mem_addr_type rd_addr_queue[$] ;
@@ -22,13 +24,14 @@ bit [2:0]cycle_4 = 5'b100;
  int no_transactions ; 
 Host_Request_Gen gen ; 
 
-  function new ( input virtual ddr_interface ddr_intf,input virtual tb_interface tb_intf, input virtual ctrl_interface ctrl_intf,input mailbox mon2check , input mailbox gen2driv) ;
+  function new (input virtual tb_interface tb_intf ,input virtual ddr_interface ddr_intf, input virtual ctrl_interface ctrl_intf,input mailbox mon2sb , input mailbox gen2sb) ;
 
- this.mon2check= mon2check ; 
+ this.mon2sb= mon2sb ; 
  this.ddr_intf=ddr_intf ;  
- this.gen2driv= gen2driv; 
- this.ctrl_intf= ctrl_intf ;
- this.tb_intf= tb_intf;
+ this.gen2sb= gen2sb; 
+ this.ctrl_intf= ctrl_intf ; 
+ this.tb_intf= tb_intf ;
+    
   
 
 endfunction 
@@ -37,21 +40,29 @@ endfunction
 
   task store_write_data();
     forever begin 
- @(posedge tb_intf.cmd_rdy) 
-
-
-
-   host_req= new() ; 
-  gen2driv.get(host_req);
-  if(host_req.req== WR_R)
+       host_req= new() ; 
+      @(posedge tb_intf.cmd_rdy) ;
+      if(gen2sb.num() != 0 ) begin 
+         gen2sb.get(host_req);
+         if(host_req.req==WR_R)
    begin 
-     write_data_array[host_req.address]=  host_req.data ; 
+     write_data_array[host_req.address]=  host_req.data ;
+    //$display(" tb_intf.log_addr:%0h \ntb_intf.request:%0h\nWrite Data:%0h \n", host_req.address, host_req.req,  host_req.data);
+         
+      no_trans++ ; 
+  // $display("write data is stored in the array!!!!") ;
    end 
-  else if(host_req.req==RD_R)
+      else 
    begin
-
+     //  $display(" tb_intf.log_addr:%0h \ntb_intf.request:%0h\nWrite Data:%0h \n", host_req.address, host_req.req,  host_req.data);
+         
      rd_addr_queue.push_back(host_req.address) ;
+      no_trans++ ; 
+    //$display("read address is stored in the array!!!!") ;
+    // $display(" rd_addr_queue.size() is %b !!!!", rd_addr_queue.size()) ;
+     
   end 
+      end 
 end
 
 endtask
@@ -60,33 +71,48 @@ endtask
 
 
 
-  task score_boarding() ; 
+  task score_boarding() ;
+    
      string result; 
+    
   Host_Request host_req_samp ; 
     forever begin 
+      @(posedge ddr_intf.CK_t);
       @(posedge rd_end) ;
-    host_req_samp=  new(); 
-    rd_addr=rd_addr_queue.pop_front ; 
-  wr_data= write_data_array[rd_addr];
-    mon2check.get(host_req_samp);
-      if((host_req_samp.req==RD_R) && (host_req_samp.address==rd_addr)) begin 
-        
-  if(host_req_samp.BL==8)
-    begin 
-     rd_data = { data_t[3], data_c[3], data_t[2], 
-    data_c[2], data_t[1], data_c[1], data_t[0], data_c[0]}; // not sure 
+     // $display(" rd_end is 1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ") ; 
+        host_req_samp=  new();
+        if(mon2sb.num() != 0) begin 
+         mon2sb.get(host_req_samp); 
+         rd_addr=rd_addr_queue.pop_front ; 
+        //if((host_req_samp.req==RD_R) ) begin 
+        //   $display(" rd_end is 1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ") ; 
+           
+          wr_data= write_data_array[rd_addr];
+         // $display("wr_data %h",  wr_data);
+    
      
-  if(rd_data== wr_data)
-    result= "PASS";
-  else 
+       
+          if(host_req_samp.BL==2'b00)
+       begin 
+      // $display(" rd_end is 1 !!!!!!!!!!!!!!!!!!!!!! ") ; 
+         rd_data = {data_c[4], data_t[3], data_c[3], data_t[2], 
+                 data_c[2], data_t[1], data_c[1], data_t[0]}; // not sure 
+    // $display("rd_data is %h !!!!!!!!!!!!!!!!!!", rd_data);
+     
+      if(rd_data== wr_data) begin
+       result= "PASS";
+   //  $display("  %s ", result) ; 
+      end 
+  else  begin 
   result= "FAIL";
-   data_check_8: assert (wr_data == rd_data);
+   //   $display("  %s ", result) ; 
+     data_check_8: assert (wr_data == rd_data);
  // $fwrite(file, "%t  Addr: 0x%h  Wr_Data: 0x%h   Rd_Data:0x%h  Result:%s\n", 
                 //  $time, raddr,  data_wr, data_rd, RESULT);
   // error msg  ;   
-   
   end 
-  else if(host_req_samp.BL==4)
+  end 
+          else if(ctrl_intf.BL==2'b10)
   begin 
   
 rd_data = {'0, data_t[3], data_c[3], data_t[2], 
@@ -103,9 +129,11 @@ rd_data = {'0, data_t[3], data_c[3], data_t[2],
    
 
 end 
- no_transactions++; 
-end
+ no_trans2++; 
+
     end 
+        end 
+    //end 
 
 endtask 
 
@@ -115,10 +143,13 @@ endtask
   forever 
     begin 
     @(negedge ddr_intf.dqs_t);
-      
+     
     if(ctrl_intf.dimm_req==RD_R)
+      
       begin
+       // $display("DQS is playing up and down !!!!") ;
      data_t ={ddr_intf.dq, data_t[4:1]}; 
+      // $display(" data_t is %h ", data_t) ; 
       if(ctrl_intf.BL==8) begin 
       cycle_8 = {cycle_8[3:0], cycle_8[4]};
        if((cycle_8[4]))
@@ -145,10 +176,12 @@ endtask
   task cap_data_c() ; 
 forever begin 
 @(negedge  ddr_intf.dqs_c)
+
   if(ctrl_intf.dimm_req==RD_R)
   begin
+   // $display("DQS is playing up and down !!!!") ;
   data_c <= {ddr_intf.dq, data_c[4:1]};    
-   
+   //$display(" data_c is %h ", data_c) ;  
   end
   
 end 
