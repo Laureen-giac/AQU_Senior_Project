@@ -41,5 +41,6 @@ interface ctrl_interface;
   int RD_PRE;
   int WR_PRE;
   int AL;
+  bit rd_start_dd; 
 
 endinterface
