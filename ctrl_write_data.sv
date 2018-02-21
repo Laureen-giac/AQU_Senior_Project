@@ -34,10 +34,9 @@ module ctrl_write_data(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inte
      begin
         if ((ctrl_intf.wr_rdy))
           begin
-            wr_out_final = wr_out;
             fork
-              set_diff_dqs(.rw_D(wr_out_final));
-         	  set_wr_pins (.rw_D(wr_out_final));
+              set_diff_dqs(.rw_D(wr_out));
+         	  set_wr_pins (.rw_D(wr_out));
             join 
      
         end
