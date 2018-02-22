@@ -71,7 +71,7 @@ module dimm_model(ddr_interface ddr_intf,
 
   always@(posedge act)
     begin
-      act_addr = {ddr_intf.bg_addr, ddr_intf.ba_addr, ddr_intf.WE_n_A14, ddr_intf.A13, ddr_intf.A12_BC_n, ddr_intf.A11, ddr_intf.A10_AP, ddr_intf.A9_A0};
+      act_addr = {ddr_intf.bg_addr, ddr_intf.ba_addr, ddr_intf.A13, ddr_intf.A12_BC_n, ddr_intf.A11, ddr_intf.A10_AP, ddr_intf.A9_A0};
     end
 
   //when does read_start?
