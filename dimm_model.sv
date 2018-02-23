@@ -15,8 +15,8 @@ module dimm_model(ddr_interface ddr_intf,
   write_data dimm[dimm_addr];
   bit[17:0] act_addr_store[$]; 
   bit[9:0] cas_addr_store[$], cas_addr, col_addr; 
-  bit act, wr, rd; 
-  bit rd_start, wr_end; 
+  bit act, wr, rd, act_d,wr_d,rd_d, ; 
+  bit rd_start, wr_end, rd_start_d,wr_end_d; 
   
   bit[4:0] cycle_8;
   bit[2:0] cycle_4; 
@@ -47,12 +47,17 @@ module dimm_model(ddr_interface ddr_intf,
           rd <= 1'b0; 
         end 
       
-      else 
+      else if(cmd === RD_C) 
         begin 
           act <= 1'b0; 
           wr <= 1'b0; 
           rd <= 1'b1; 
-        end 
+        end
+      else  begin 
+          act <= 1'b0; 
+          wr <= 1'b0; 
+          rd <= 1'b0;
+      end  
     end 
   
   /*****methods for read *******/
@@ -61,18 +66,21 @@ module dimm_model(ddr_interface ddr_intf,
   
   always@(posedge act)
     begin 
+      if(act) begin 
       act_addr = {ddr_intf.bg_addr, ddr_intf.ba_addr, ddr_intf.WE_n_A14, ddr_intf.A13, ddr_intf.A12_BC_n, ddr_intf.A11, ddr_intf.A10_AP, ddr_intf.A9_A0}; 
-    end 
+      end 
+      end 
   
   //when does read_start?
   
   always_ff@(posedge ddr_intf.CK_t) 
     begin 
-      ddr_intf.rd_start <= (ctrl_intf.dimm_req == RD_R);  
+      ddr_intf.rd_start <= (ctrl_intf.dimm_req == RD_R)&& (ctrl_intf.rd_rdy);  
     end 
   
-  always_ff@(negedge ddr_intf.CK_t , negedge ddr_intf.reset_n)
+ always_ff@(posedge act_d   or posedge ctrl_intf.no_act_rdy or negedge ddr_intf.reset_n)
     begin
+      
       
       bit[17:0] temp;
       
@@ -82,7 +90,7 @@ module dimm_model(ddr_interface ddr_intf,
         end 
       else 
         begin 
-          if(act) begin
+          if(act_d) begin
             $display("Activating"); 
             act_addr_store.push_back(act_addr); 
           end
@@ -101,22 +109,22 @@ module dimm_model(ddr_interface ddr_intf,
       cas_addr = ddr_intf.A9_A0; 
     end 
   
-  always_ff@(posedge ddr_intf.CK_c or negedge ddr_intf.reset_n)
+ always_ff@(posedge rd_d or posedge  wr_d or negedge ddr_intf.reset_n)
     begin
       if(!ddr_intf.reset_n)
         begin 
           cas_addr_store.delete();  
         end 
-      else if(rd || wr)
+      else if(rd_d || wr_d)
         begin 
           cas_addr_store.push_back(cas_addr);
         end 
     end 
   
-  always_ff@(posedge ddr_intf.CK_c) 
+  always_ff@( posedge wr_end , posedge rd_start ) 
     begin 
-      if(((wr_end || rd_start )) &&
-         (act_addr_store.size != 0)) 
+      if(((wr_end ) || (rd_start)) &&
+         ( (act_addr_store.size() != 0) && (cas_addr_store.size() != 0 ) ))
         begin 
           row_addr <= act_addr_store.pop_front(); 
           col_addr <= cas_addr_store.pop_front(); 
@@ -148,40 +156,43 @@ module dimm_model(ddr_interface ddr_intf,
         end
     end
   
-  always@(wr_end, rd_start, ddr_intf.reset_n) 
+  always@(wr_end_d, rd_start_d, ddr_intf.reset_n) 
     begin
-      bit[29:0] dimm_index; 
+      bit[27:0] dimm_index; 
       
       if(!ddr_intf.reset_n) 
         begin 
-          dimm_index = 1'b0;
-        end 
+          dimm_index <= '0;
+           
+        end
       
-      dimm_index = {row_addr, col_addr}; 
-      
-      if ((wr_end) && (ctrl_intf.BL == 8)) 
-        begin
-          dimm[{row_addr,col_addr}] = {data_c[4], data_t[3], data_c[3], data_t[2], data_c[2], data_t[1], data_c[1], data_t[0]};
-          tb_intf.dimm_data = dimm[{row_addr, col_addr}];
-        end 
-      
-      else if (wr_end) 
-        begin 
-          dimm[{row_addr, col_addr}] =  {data_c[4],data_t[3],data_c[3],data_t[2]};
-          
-        end 
-      
-      if ((ddr_intf.rd_start) && (ctrl_intf.BL == 8)) begin
-            ddr_intf.data_out.wr_data = dimm[{row_addr,col_addr}];
+       else if ((rd_start_d) && (ctrl_intf.BL == 8)) begin
+        dimm_index = {row_addr, col_addr};
+      //  $display("\n \n %h \n ",{row_addr,col_addr});
+            ddr_intf.data_out.wr_data = dimm[dimm_index];
+    //  $display("\n \n %h \n ",dimm[{row_addr,col_addr}]);
+        
+       
+           
             ddr_intf.data_out.burst_length = ctrl_intf.BL;
             ddr_intf.data_out.preamable = tb_intf.RD_PRE;
+        // $display(" ddr_intf.data_out.wr_data is  %h",  ddr_intf.data_out.wr_data); 
+         
           end
+         
+      
+      
+        else if ((wr_end_d) && (ctrl_intf.BL == 8)) 
+        begin
+          dimm_index = {row_addr, col_addr};
+           // $display("\n \n %h \n ",{row_addr,col_addr});
+          dimm[dimm_index] = {data_c[4] , data_t[3], data_c[3], data_t[2], 
+                                       data_c[2], data_t[1], data_c[1], data_t[0]};
+        // $display("{row_addr,col_addr} is %h, dimm[{row_addr,col_addr}] is  %h \n",{row_addr,col_addr},  dimm[{row_addr,col_addr}]);
           
-      else if (ddr_intf.rd_start) begin
-            ddr_intf.data_out.wr_data[31:0] = dimm[dimm_index];
-            ddr_intf.data_out.burst_length  = ctrl_intf.BL;
-            ddr_intf.data_out.preamable = ctrl_intf.RD_PRE;
-          end
+          
+        end 
+          
         end
 endmodule 
       
