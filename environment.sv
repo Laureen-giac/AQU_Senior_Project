@@ -2,14 +2,14 @@
 `include "generator.sv"
 `include "driver.sv"
 `include "monitor.sv"
-//`include "scoreboard.sv"
+`include "scoreboard.sv"
 
 class environment; 
   
   generator gen; 
   driver drv; 
   monitor mon;  
-  //scoreboard sb; 
+  scoreboard sb; 
   mailbox gen2dvr; 
   mailbox gen2sb; 
   mailbox mon2sb; 
@@ -39,8 +39,11 @@ class environment;
               .tb_intf(tb_intf), 
               .ddr_intf(ddr_intf));
     
-  //  sb = new(.mon2sb(mon2sb), 
-            // .tb_intf(tb_intf)); 
+    sb = new(.tb_intf(tb_intf), 
+             .ddr_intf(ddr_intf), 
+             .ctrl_intf(ctrl_intf), 
+             .gen2sb(gen2sb),
+             .mon2sb(mon2sb)); 
     
   endfunction 
   
@@ -54,15 +57,15 @@ class environment;
     fork
       gen.run(10); 
       drv.run();
-     // mon.run(); 
-     //sb.main(5); 
-    join_any 
+      mon.run(); 
+      sb.run(); 
+    join_any  
   endtask
   
   task stop();
-    wait(gen.no_trans == drv.no_trans);
-    //wait(gen.no_trans == mon.no_trans); 
-    $display("%h", tb_intf.cmd_rdy); 
+    wait(gen.ended.triggered); 
+    wait((gen.no_trans == drv.no_trans) &&(gen.no_trans == mon.no_trans) && (gen.no_trans == sb.no_trans));
+    #200ns; 
     $finish; 
   endtask 
   
