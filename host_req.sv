@@ -31,6 +31,10 @@ class host_req;
   }
   
   constraint req_c3 { 
+    request == WR_R -> wr_data != '1; 
+  }
+  
+  constraint req_c4 { 
     request dist {RD_R := 5 , WR_R := 5};
   } 
   
