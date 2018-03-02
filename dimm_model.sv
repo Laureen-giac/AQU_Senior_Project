@@ -15,7 +15,7 @@ module dimm_model(ddr_interface ddr_intf,
   write_data dimm[*];
   bit[17:0] act_addr_store[$]; 
   bit[9:0] cas_addr_store[$], cas_addr, col_addr; 
-  bit act, wr, rd, rd_d, rd_dd ,wr_d, act_d, rd_ddd; 
+  bit act, wr, rd, rd_d, rd_dd ,wr_d, act_d, rd_ddd, cycle_8_d, cycle_4_d; 
   bit rd_start_d,rd_start_dd, wr_end,wr_end_d, rd_start; 
    
   bit[4:0] cycle_8;
@@ -35,6 +35,8 @@ module dimm_model(ddr_interface ddr_intf,
     wr_d <= wr ;
     act_d <= act ; 
     rd_ddd <= rd_dd ;
+    cycle_8_d <= cycle_8[4];
+    cycle_4_d <= cycle_4[2];
   end 
   
   always_ff@(posedge ddr_intf.CK_t) begin 
@@ -66,13 +68,14 @@ module dimm_model(ddr_interface ddr_intf,
     end 
   end 
   
-  assign wr_end = ((cycle_8[4]) && ($time != 0)) ? 1'b1:1'b0;
+  assign wr_end = (((cycle_8[4]) && (!cycle_8_d)) ||
+                ((cycle_4[2]) && (!cycle_4_d)))? 1'b1:1'b0;
   
   always_ff@(posedge ddr_intf.CK_t) begin 
     rd_start   <= (ctrl_intf.dimm_req == RD_R) && (ctrl_intf.rd_rdy);
   end 
   
-  always_ff@(posedge  act )
+  always_ff@(posedge act)
     begin
       if(act) begin 
         act_addr = {ddr_intf.bg_addr, ddr_intf.ba_addr, ddr_intf.A13, ddr_intf.A12_BC_n, ddr_intf.A11, ddr_intf.A10_AP, ddr_intf.A9_A0};
@@ -156,10 +159,22 @@ module dimm_model(ddr_interface ddr_intf,
       ddr_intf.data_out.preamable = tb_intf.RD_PRE;
     end
     
+    else if((rd_start_d) && (ctrl_intf.BL == 4)) begin 
+      dimm_index = {row_addr, col_addr};
+      ddr_intf.data_out.wr_data[31:0] = dimm[dimm_index];
+      ddr_intf.data_out.burst_length = ctrl_intf.BL;
+      ddr_intf.data_out.preamable = tb_intf.RD_PRE;
+    end 
+    
     else if ((wr_end_d) && (ctrl_intf.BL == 8)) begin
       dimm_index = {row_addr, col_addr};
       dimm[dimm_index] = {data_c[4] , data_t[3], data_c[3], data_t[2], 
                                        data_c[2], data_t[1], data_c[1], data_t[0]};
     end 
+    
+    else if((wr_end_d)&& (ctrl_intf.BL == 4)) begin 
+      dimm[{row_addr,col_addr}] = {data_c[4],data_t[3],data_c[3],data_t[2]};   
+   end
+      
   end
 endmodule 
