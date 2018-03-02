@@ -87,7 +87,7 @@ class scoreboard;
         end 
         
         else if(host_req_samp.BL==2'b10) begin 
-          rd_data = {'0, data_t[2], data_c[1], data_t[1], data_c[0]}; // not sure 
+          rd_data = {'0, data_c[2], data_t[1], data_c[1], data_t[0]}; // not sure 
           
           if(rd_data[31:0]== wr_data)
             result= "PASS";
