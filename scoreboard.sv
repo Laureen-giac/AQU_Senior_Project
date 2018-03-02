@@ -16,6 +16,7 @@ class scoreboard;
   host_req gen_req; 
   logic[4:0][7:0] data_c, data_t; 
   bit[4:0] cycle_8 = 5'b10000; 
+  bit[2:0] cycle_4 = 3'b100; 
   
   int no_trans = 0; 
   mem_addr_type rd_addr; 
@@ -43,7 +44,10 @@ class scoreboard;
         gen2sb.get(gen_req);
         if(gen_req.request==WR_R) begin
           index = gen_req.log_addr[27:0]; 
-          dimm[index]=  gen_req.wr_data;
+          if(ctrl_intf.BL == 8)
+            dimm[index]=  gen_req.wr_data;
+          else 
+            dimm[index]= gen_req.wr_data[31:0]; 
           no_trans++; 
         end 
         else begin
@@ -81,8 +85,19 @@ class scoreboard;
             data_check_8: assert (wr_data == rd_data);
             $display("%t\tAddress:0x%h\tWR_Data: 0x%h\tRD_Data0x%h\tResult:%s\n", $time, rd_addr, wr_data, rd_data, result);
         end 
+        
+        else if(host_req_samp.BL==2'b10) begin 
+          rd_data = {'0, data_t[2], data_c[1], data_t[1], data_c[0]}; // not sure 
+          
+          if(rd_data[31:0]== wr_data)
+            result= "PASS";
+          else 
+            result= "FAIL";
+          data_check_4: assert (wr_data == rd_data);
+          $display("%t\tAddress:0x%h\tWR_Data: 0x%h\tRD_Data0x%h\tResult:%s\n", $time, rd_addr, wr_data, rd_data, result);
         end 
-      end  
+      end
+    end  
   endtask 
   
   task cap_data_t(); 
@@ -96,7 +111,14 @@ class scoreboard;
             rd_end = 1'b1 ; 
           else 
             rd_end = 1'b0; 
-        end 
+        end
+        else begin 
+          cycle_4 = {cycle_4[1:0], cycle_4[2]};
+          if((cycle_4[2]))
+            rd_end = 1'b1; 
+          else 
+            rd_end = 1'b0; 
+        end   
       end 
     end 
   endtask
