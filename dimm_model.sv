@@ -173,7 +173,7 @@ module dimm_model(ddr_interface ddr_intf,
     end 
     
     else if((wr_end_d)&& (ctrl_intf.BL == 4)) begin 
-      dimm[{row_addr,col_addr}] = {data_c[4],data_t[3],data_c[3],data_t[2]};   
+      dimm[{row_addr,col_addr}] = {data_c[2], data_t[1], data_c[1], data_t[0]}; 
    end
       
   end
