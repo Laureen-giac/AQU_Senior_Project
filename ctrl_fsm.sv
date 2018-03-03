@@ -43,7 +43,7 @@ module ctrl_fsm(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface t
         clear_update <= 1'b1;
         clear_counter <= 1'b1;
         ctrl_intf.busy <= 1'b0;
-        ctrl_intf.rw_proc <= 1'b1; 
+        tb_intf.rw_proc <= 1'b1; 
         if(ddr_intf.reset_n)
           ctrl_next_state <= CTRL_INIT;
       end
@@ -55,7 +55,7 @@ module ctrl_fsm(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface t
          if(ctrl_intf.ini_done)
            begin 
              ctrl_next_state <= CTRL_ACTIVATE; //no open rows
-             ctrl_intf.rw_proc <= 1'b1; 
+             tb_intf.rw_proc <= 1'b1; 
           end
         end 
 
@@ -66,7 +66,7 @@ module ctrl_fsm(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface t
           if(ctrl_intf.refresh_almost || tb_intf.mrs_update) 
             begin 
               ctrl_next_state <= CTRL_WAIT;
-              ctrl_intf.rw_proc  <= 1'b0; //finish current RW b4 refresh
+              tb_intf.rw_proc  <= 1'b0; //finish current RW b4 refresh
             end 
         end
 
@@ -107,7 +107,7 @@ module ctrl_fsm(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface t
             begin
               ctrl_next_state <= CTRL_RW;
               clear_counter <= 1'b1;
-              ctrl_intf.rw_proc <= 1'b1; 
+              tb_intf.rw_proc <= 1'b1; 
             end
           else if(tb_intf.mrs_update ||ctrl_intf.refresh_almost )
             begin
@@ -172,4 +172,3 @@ module ctrl_fsm(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface t
     end
   
 endmodule
-
