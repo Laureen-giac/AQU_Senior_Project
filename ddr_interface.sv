@@ -1,3 +1,4 @@
+
 interface ddr_interface;
 
   logic reset_n;
@@ -5,8 +6,6 @@ interface ddr_interface;
   logic CK_t;
   logic CK_c;
   logic CK_r; 
-  logic[13:0] row_addr;
-  logic[9:0] col_addr;
   logic cs_n;
   logic act_n;
   logic RAS_n_A16;
@@ -23,5 +22,7 @@ interface ddr_interface;
   logic [DATA_WIDTH-1:0] dq;
   logic dqs_t; 
   logic dqs_c; 
+  wr_data_type data_out; 
+    
 
 endinterface
