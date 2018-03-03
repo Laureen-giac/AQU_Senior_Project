@@ -1,3 +1,4 @@
+//careful of rw_idle
 `include "ddr_pkg.pkg"
 
 interface ctrl_interface;
@@ -11,10 +12,10 @@ interface ctrl_interface;
   bit zqcl_rdy;
   bit act_rdy;
   bit no_act_rdy;
-  bit no_act;
-  bit data_idle;
+  //bit no_act;
+  bit data_idle; 
   bit act_idle;
-  bit rw_done;
+  bit rw_done; 
   bit rd_rdy;
   bit wr_rdy;
   bit rda_rdy;
@@ -23,24 +24,24 @@ interface ctrl_interface;
   bit prea_rdy;
   bit cas_rdy;
   bit cas_idle;
-  bit rw_proc;
+ // bit rw_proc;
   bit rw_idle;
-  bit rw_rdy;
+  bit rw_rdy; 
   bit clear_refresh;
   bit refresh_done;
   bit refresh_almost;
   mem_addr_type mem_addr;
   mode_register_type mode_reg, pre_reg;
   logic[2:0] req;
-  logic[2:0] cas_req;
-  logic[2:0] act_rw;
-  int BL;
+  logic[2:0] cas_req; 
+  logic[2:0] act_rw; 
+  logic[2:0] dimm_req; 
+  int BL; 
   int CL;
   int CWL;
   int tCCD;
   int RD_PRE;
   int WR_PRE;
   int AL;
-  bit rd_start_dd; 
-
+  logic rd_start;
 endinterface
