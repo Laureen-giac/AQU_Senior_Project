@@ -97,6 +97,7 @@ class scoreboard;
           $display("%t\tAddress:0x%h\tWR_Data: 0x%h\tRD_Data0x%h\tResult:%s\n", $time, rd_addr, wr_data, rd_data, result);
         end 
       end
+      #20ns ;
     end  
   endtask 
   
