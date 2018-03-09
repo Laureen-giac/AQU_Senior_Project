@@ -69,11 +69,11 @@ module dimm_model(ddr_interface ddr_intf,
   end 
   
   assign wr_end = (((cycle_8[4]) && (!cycle_8_d)) ||
-                ((cycle_4[2]) && (!cycle_4_d)))? 1'b1:1'b0;
+                   ((cycle_4[2]) && (!cycle_4_d)))? 1'b1:1'b0;
   
-  always_ff@(posedge ddr_intf.CK_t) begin 
-    rd_start   <= (ctrl_intf.dimm_req == RD_R) && (ctrl_intf.rd_rdy);
-  end 
+ always_ff@(posedge ddr_intf.CK_t) begin
+   rd_start  <= (ctrl_intf.dimm_req == RD_R) && ctrl_intf.rd_rdy;
+   end 
   
   always_ff@(posedge act)
     begin
@@ -84,7 +84,7 @@ module dimm_model(ddr_interface ddr_intf,
   
   //when does read_start?
   
-  always_ff@(posedge act_d   or posedge ctrl_intf.no_act_rdy or negedge ddr_intf.reset_n) begin
+  always_ff@(posedge act_d or posedge ctrl_intf.no_act_rdy or negedge ddr_intf.reset_n) begin
     bit[17:0] temp;
     
     if(!ddr_intf.reset_n)begin 
@@ -116,7 +116,7 @@ module dimm_model(ddr_interface ddr_intf,
     end 
   end 
   
-  always_ff@( posedge wr_end , posedge rd_start ) begin 
+  always_ff@(posedge ddr_intf.CK_c) begin 
     if((wr_end || rd_start) &&
        ((act_addr_store.size() != 0) && (cas_addr_store.size() != 0 ))) begin 
       row_addr = act_addr_store.pop_front(); 
@@ -172,7 +172,7 @@ module dimm_model(ddr_interface ddr_intf,
                                        data_c[2], data_t[1], data_c[1], data_t[0]};
     end 
     
-    else if((wr_end_d)&& (ctrl_intf.BL == 4)) begin 
+    else if((wr_end_d) && (ctrl_intf.BL == 4)) begin 
       dimm[{row_addr,col_addr}] = {data_c[4],data_t[3],data_c[3],data_t[2]}; 
    end
       
