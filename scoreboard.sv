@@ -17,6 +17,7 @@ class scoreboard;
   logic[4:0][7:0] data_c, data_t; 
   bit[4:0] cycle_8 = 5'b10000; 
   bit[2:0] cycle_4 = 3'b100; 
+  bit cycle_8_d, cycle_4_d; 
   
   int no_trans = 0; 
   mem_addr_type rd_addr; 
@@ -36,31 +37,47 @@ class scoreboard;
     
   endfunction 
   
+  task delay();
+    forever begin
+      @(posedge  ddr_intf.CK_t)
+      cycle_8_d <= cycle_8[4]; 
+      cycle_4_d <= cycle_4[2]; 
+    end 
+  endtask 
+  
+  task detect_rd(); 
+    forever 
+      begin 
+        @(posedge ddr_intf.CK_t); 
+        rd_end <= (cycle_8[4] && !cycle_8_d)? 1'b1 : 1'b0; 
+      end 
+  endtask 
+  
+  
   task store_write_data();
     forever begin 
       gen_req= new(); 
-      @(posedge tb_intf.cmd_rdy) ;
+      @(posedge tb_intf.cmd_rdy);
       if(gen2sb.num() != 0 ) begin 
         gen2sb.get(gen_req);
         if(gen_req.request==WR_R) begin
           index = gen_req.log_addr[27:0]; 
           if(ctrl_intf.BL == 8)
-            dimm[index]=  gen_req.wr_data;
+            dimm[index] = gen_req.wr_data;
           else 
             dimm[index]= gen_req.wr_data[31:0]; 
           no_trans++; 
         end 
-        else begin
-          rd_addr_store.push_back(gen_req.log_addr[27:0]);
-          no_trans++ ; 
-        end 
+        else if(gen_req.request == RD_R) begin 
+          rd_addr_store.push_back(gen_req.log_addr[27:0]); 
+          no_trans++; 
+         end 
       end 
     end
   endtask
   
   
-  task compare() ;
-    
+  task compare();
     string result;
     host_req host_req_samp ; 
     forever begin 
@@ -69,35 +86,38 @@ class scoreboard;
       host_req_samp=  new();
       if(mon2sb.num() != 0) begin 
         mon2sb.get(host_req_samp);
-        rd_addr=rd_addr_store.pop_front;
-        wr_data= dimm[rd_addr];
-        
-        if(host_req_samp.BL== 2'b00) begin 
-          rd_data = {data_c[4], data_t[3], data_c[3], data_t[2], 
-                     data_c[2], data_t[1], data_c[1], data_t[0]};
+        if(rd_addr_store.size() != 0) begin 
+          rd_addr=rd_addr_store.pop_front;
+          wr_data= dimm[rd_addr];
           
-          if(rd_data== wr_data) 
-            result= "PASS";
-          
-          else  
-            result= "FAIL";
+          if(host_req_samp.BL== 2'b00) begin 
+            rd_data = {data_c[4], data_t[3], data_c[3], data_t[2], 
+                       data_c[2], data_t[1], data_c[1], data_t[0]};
+            
+            if(rd_data == wr_data) 
+              result= "PASS";
+            
+            else  
+              result= "FAIL";
             
             data_check_8: assert (wr_data == rd_data);
-            $display("%t\tAddress:0x%h\tWR_Data: 0x%h\tRD_Data0x%h\tResult:%s\n", $time, rd_addr, wr_data, rd_data, result);
-        end 
-        
-        else if(host_req_samp.BL==2'b10) begin 
-          rd_data = {'0,data_c[4],data_t[3],data_c[3],data_t[2]}; // not sure 
+            
+            $display("%t\tAddress:0x%h\tWR_Data: 0x%h\tRD_Data: 0x%h\tResult:%s\n", $time, rd_addr, wr_data, rd_data, result);
+          end 
           
-          if(rd_data[31:0]== wr_data)
-            result= "PASS";
-          else 
-            result= "FAIL";
-          data_check_4: assert (wr_data == rd_data);
-          $display("%t\tAddress:0x%h\tWR_Data: 0x%h\tRD_Data0x%h\tResult:%s\n", $time, rd_addr, wr_data, rd_data, result);
-        end 
-      end
-      #20ns ;
+          else if(host_req_samp.BL==2'b10) begin 
+            rd_data = {'0,data_c[4],data_t[3],data_c[3],data_t[2]};
+            
+            if(rd_data[31:0]== wr_data)
+             result= "PASS";
+            else 
+              result= "FAIL";
+            
+            data_check_4: assert (wr_data == rd_data); 
+            $display("%t\tAddress:0x%h\tWR_Data: 0x%h\tRD_Data: 0x%h\tResult:%s\n", $time, rd_addr, wr_data, rd_data, result);
+          end 
+        end
+      end 
     end  
   endtask 
   
@@ -108,19 +128,19 @@ class scoreboard;
         data_t ={ddr_intf.dq, data_t[4:1]};
         if(ctrl_intf.BL==8) begin 
           cycle_8 = {cycle_8[3:0], cycle_8[4]};
-          if((cycle_8[4]))
+          if((cycle_8[4]) && !cycle_8_d)
             rd_end = 1'b1 ; 
           else 
             rd_end = 1'b0; 
         end
-        else begin 
+        else if(ctrl_intf.BL == 4) begin 
           cycle_4 = {cycle_4[1:0], cycle_4[2]};
-          if((cycle_4[2]))
+          if((cycle_4[2]) && !cycle_4_d)
             rd_end = 1'b1; 
           else 
             rd_end = 1'b0; 
         end   
-      end 
+      end
     end 
   endtask
   
@@ -141,11 +161,12 @@ class scoreboard;
   endtask 
   
   task run(); 
-    fork
+    fork 
+      delay(); 
       store_write_data();
       cap_rd_data();
       compare(); 
-    join_any
+    join
   endtask 
 
 endclass
