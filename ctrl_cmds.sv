@@ -1,6 +1,6 @@
 /***********************************************************************************
   * Script : ctrl_cmds.sv *
-  * Author: Laureen Giacaman *
+  
   * Description: This module is responsible for programming the DDR4 with 	
   ->the set of commands from JEDEC sec4.1 pg: 24.
   ->The supported commands should be: MRS, REF, PRE(PREA*),ACT,WR(WRA*),
