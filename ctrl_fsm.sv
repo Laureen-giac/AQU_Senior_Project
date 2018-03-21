@@ -1,6 +1,6 @@
 /***********************************************************************************
   * Script : ctrl_fsm.sv *
-  * Author: Laureen Giacaman *
+  
   * Description: This module is responsible for implementing the controller FSM p.43
   *The controller has six main states: idle, initialization, refresh, update, activate
   * and read/write.
