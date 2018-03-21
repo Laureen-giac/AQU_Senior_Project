@@ -1,6 +1,6 @@
 /***********************************************************************************
   * Script : ctrl_burst_cas.sv *
-  * Author: Laureen Giacaman *
+  
   * Description: This module is responsible for controlling the CAS timing latencies
     which are tRCD: ACT to CAS delay which only comes into play whenever a request
     arrives for a data that is not in an actitve row. and tCCD which is the delay
