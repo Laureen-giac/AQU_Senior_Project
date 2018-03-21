@@ -1,6 +1,6 @@
 /**********************************************************************************
   * Script : ctrl_init.sv *
-  * Author: Diana Atiyeh *
+  
   * Description: This module is responsible for controlling the reset and   
   * power up initialization sequence of the DDR4 memory. 
 *********************************************************************************/
