@@ -1,6 +1,6 @@
 /***********************************************************************************
   * Script : ctrl_burst_act.sv *
-  * Author: Diana Atiyeh *
+  
   * Description: This module is responsible for controlling the ACTIVATE command
   *This module keeps an array of open rows indexed by the bank group and bank address
   *A row hit is an open row.
