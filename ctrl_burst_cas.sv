@@ -97,10 +97,10 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
                       prev_req <= request;
                       if(rtw)
                         begin
-                          cas_next_state <= CAS_WAIT_DATA;
+                          cas_next_state <= CAS_EXTRA_WAIT;
                         end 
                       else 
-                        cas_next_state <= CAS_EXTRA_WAIT;  
+                        cas_next_state <= CAS_WAIT_DATA;  
                     end 
                 end
               end 
