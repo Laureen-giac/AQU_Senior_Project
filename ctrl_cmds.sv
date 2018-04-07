@@ -1,8 +1,7 @@
 /***********************************************************************************
   * Script : ctrl_cmds.sv *
-  
-  * Description: This module is responsible for programming the DDR4 with 	
-  ->the set of commands from JEDEC sec4.1 pg: 24.
+  * Author: Laureen Giacaman *
+  * Description: This module is responsible for programming the DDR4 with 	->the set of commands from JEDEC sec4.1 pg: 24.
   ->The supported commands should be: MRS, REF, PRE(PREA*),ACT,WR(WRA*),
   	RD(RDA*), NOP, DES, ZQCL
 
@@ -19,27 +18,31 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
   rw_request host_req, rw_cmd_out;
   rw_request rw_cmd_queue[$];
   command_type cmd_out;
-  mem_addr_type phy_addr; 
+  mem_addr_type mem_addr; 
+  bit act_cmd_d; 
+  
+  always_ff @(ddr_intf.CK_t) begin
+    act_cmd_d <= tb_intf.cmd_rdy;
+  end
 
   /*
   Asych. reset
   */
 
-  always_comb//(ddr_intf.reset_n, ctrl_intf.act_rdy, ctrl_intf.no_act_rdy)
+  always_comb
     begin
-      if(!ddr_intf.reset_n)
-        begin
-          rw_cmd_queue.delete();
-        end
+      if(!ddr_intf.reset_n) begin
+        rw_cmd_queue.delete(); 
+      end
     end 
       
       always_comb
         begin
           if(tb_intf.cmd_rdy && !ctrl_intf.busy) begin
              
-            phy_addr = address_decode(tb_intf.log_addr, phy_addr); //GEN; pass ref.
-            if(phy_addr) begin
-              ctrl_intf.mem_addr = phy_addr;
+            mem_addr = address_decode(tb_intf.phy_addr, mem_addr); 
+            if(mem_addr) begin
+              ctrl_intf.mem_addr = mem_addr;
               ctrl_intf.req = tb_intf.request;
             end 
             else begin 
@@ -54,16 +57,18 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
           if(ctrl_intf.act_rdy || ctrl_intf.no_act_rdy) begin
             host_req.phy_addr = ctrl_intf.mem_addr;
             host_req.request = ctrl_intf.req; //GEN
-            if(host_req.phy_addr) 
+            if(host_req.phy_addr) begin 
               rw_cmd_queue.push_back(host_req);
+            end
           end
         end
   
   always_ff@(posedge ctrl_intf.cas_rdy) begin
     if(rw_cmd_queue.size() != 0 ) begin 
-      rw_cmd_out = rw_cmd_queue.pop_front();
+       rw_cmd_out = rw_cmd_queue.pop_front();
     end 
   end 
+  
     
   /* Generating the commands is combo logic
   */
@@ -75,101 +80,83 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
      Need to send memory @ here
      */
 
-      if(ctrl_intf.act_rdy)
+     if(ctrl_intf.act_rdy)
       begin
         cmd_out.cmd = ACT;
-        cmd_out.req.phy_addr = phy_addr;
+        cmd_out.req.phy_addr = mem_addr;
         cmd_out.req.request = 2'b00;
       end
      
     else if(ctrl_intf.cas_rdy) 
        begin
-         if(rw_cmd_out.request == WR_R)
-             begin 
-               cmd_out.cmd = WR;
-               cmd_out.req.phy_addr = rw_cmd_out.phy_addr; 
-             end 
+         if(rw_cmd_out.request == WR_R) begin 
+           cmd_out.cmd = WR;
+           cmd_out.req.phy_addr = rw_cmd_out.phy_addr; 
+         end 
          
-         else
-           if(rw_cmd_out.request == RD_R)
-           begin 
-             cmd_out.cmd = RD;
-             cmd_out.req.phy_addr = rw_cmd_out.phy_addr; 
-           end 
+         else if(rw_cmd_out.request == RD_R)begin 
+           cmd_out.cmd = RD; 
+           cmd_out.req.phy_addr = rw_cmd_out.phy_addr; 
+         end 
          
-         else 
-           if(rw_cmd_out.request == WRA_R)
-             begin 
-               cmd_out.cmd = WRA; 
-               cmd_out.req.phy_addr = rw_cmd_out.phy_addr; 
-             end 
+         else if(rw_cmd_out.request == WRA_R) begin 
+           cmd_out.cmd = WRA; 
+           cmd_out.req.phy_addr = rw_cmd_out.phy_addr; 
+         end 
          
-         else 
-           if(rw_cmd_out.request == RDA_R)
-             begin 
-               cmd_out.cmd = RDA; 
-               cmd_out.req.phy_addr = rw_cmd_out.phy_addr; 
-             end 
+         else if(rw_cmd_out.request == RDA_R) begin 
+           cmd_out.cmd = RDA; 
+           cmd_out.req.phy_addr = rw_cmd_out.phy_addr;
+         end 
        end 
      
-     else
-       begin
-         cmd_out.cmd = NOP;
-         cmd_out.req.phy_addr = '1;
-         cmd_out.req.request = NOP_R;
-       end
-
-     if(ctrl_intf.rd_rdy) 
-       begin 
-         ctrl_intf.dimm_req = RD_R; 
-       end 
+     else begin
+       cmd_out.cmd = NOP;
+       cmd_out.req.phy_addr = '1;
+       cmd_out.req.request = NOP_R; 
+     end
      
-     if(ctrl_intf.wr_rdy)
-       begin 
-         ctrl_intf.dimm_req = WR_R; 
-       end 
+     if(ctrl_intf.rd_rdy)begin 
+       ctrl_intf.dimm_req = RD_R;
+     end 
      
+     if(ctrl_intf.wr_rdy)begin 
+       ctrl_intf.dimm_req = WR_R; 
+     end 
      
-     if(ctrl_intf.mrs_rdy)
-       begin
-         cmd_out.cmd = MRS;
-         cmd_out.req.phy_addr.bg_addr = ctrl_intf.mode_reg[18:17];
-         cmd_out.req.phy_addr.ba_addr = ctrl_intf.mode_reg[16:15];
-       
-       end
-    
-     if(ctrl_intf.refresh_rdy)
-       begin
-         cmd_out.cmd = REF;
-       end
+     if(ctrl_intf.mrs_rdy) begin
+       cmd_out.cmd = MRS;
+       cmd_out.req.phy_addr = {ctrl_intf.mode_reg, 10'b1};
+     end
+     
+     if(ctrl_intf.refresh_rdy) begin
+       cmd_out.cmd = REF;
+     end
 
-     if(ctrl_intf.pre_rdy)
-       begin
-         cmd_out.cmd = PRE;
-         cmd_out.req.phy_addr = rw_cmd_out.phy_addr;
-       end
+     if(ctrl_intf.pre_rdy) begin
+       cmd_out.cmd = PRE;
+       cmd_out.req.phy_addr = {ctrl_intf.pre_reg, 10'b1};
+     end
 
-     if(ctrl_intf.prea_rdy)
-       begin
-         cmd_out.cmd = PREA;
-       end
-
-     if(ctrl_intf.zqcl_rdy)
-       begin
-         cmd_out.cmd = ZQCL;
-       end
-
-     if(ctrl_intf.des_rdy)
-       begin
-         cmd_out.cmd = DES;
-         cmd_out.req.phy_addr = 'x;
-       end
+     if(ctrl_intf.prea_rdy) begin
+       cmd_out.cmd = PREA;
+       cmd_out.req.phy_addr = {ctrl_intf.pre_reg, 10'b1};
+     end
+     
+     if(ctrl_intf.zqcl_rdy) begin
+       cmd_out.cmd = ZQCL;
+     end
+     
+     if(ctrl_intf.des_rdy) begin
+       cmd_out.cmd = DES;
+       cmd_out.req.phy_addr = {ctrl_intf.mode_reg, 10'b1};
+     end
    end
 
   /* Decoding the commands. Refer to JEDEC sec4.1 pg:24
   */
 
-  always_ff @(posedge ddr_intf.CK_c)
+  always_ff @(posedge ddr_intf.CK_t)
     begin
       if ((ctrl_intf.act_rdy)
         ||(ctrl_intf.rd_rdy)
@@ -177,16 +164,15 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
         ||(ctrl_intf.rda_rdy)
         ||(ctrl_intf.wra_rdy)
         ||(ctrl_intf.mrs_rdy)
-        ||(ctrl_intf.cas_rdy)  
         ||(ctrl_intf.refresh_rdy)
         ||(ctrl_intf.pre_rdy)
         ||(ctrl_intf.zqcl_rdy)
-          ||(ctrl_intf.des_rdy))
+        ||(ctrl_intf.cas_rdy)  
+        ||(ctrl_intf.des_rdy))
         
-        begin
+        begin 
           case(cmd_out.cmd)
             ACT: begin
-              $display("decoding ACT"); 
               ddr_intf.cs_n <= 1'b0;
           	  ddr_intf.act_n <= 1'b0;
               ddr_intf.RAS_n_A16 <= 1'b1;
@@ -203,6 +189,7 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
             end
 
             RD: begin
+              //$display("decoding read"); 
               ddr_intf.cs_n <= 1'b0;
               ddr_intf.act_n <= 1'b1;
           	  ddr_intf.RAS_n_A16 <= 1'b1;
@@ -215,7 +202,7 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
           	  ddr_intf.A13 <= 1'b1;
           	  ddr_intf.A11 <= 1'b1;
           	  ddr_intf.A10_AP <= 1'b0;
-          	  ddr_intf.A9_A0 <= cmd_out.req.phy_addr.col_addr[9:0];
+          	  ddr_intf.A9_A0 <= cmd_out.req.phy_addr.col_addr;
             end
             
             RDA: begin
@@ -231,11 +218,11 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
           	  ddr_intf.A13 <= 1'b1;
           	  ddr_intf.A11 <= 1'b1;
           	  ddr_intf.A10_AP <= 1'b1;
-          	  ddr_intf.A9_A0 <= cmd_out.req.phy_addr.col_addr[9:0];
+          	  ddr_intf.A9_A0 <= cmd_out.req.phy_addr.col_addr;
             end
             
             WR: begin
-              $display("decoding write");
+              //$display("decoding write");
               ddr_intf.cs_n <= 1'b0;
               ddr_intf.act_n <= 1'b1;
               ddr_intf.RAS_n_A16 <= 1'b1;
@@ -248,7 +235,7 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
               ddr_intf.A13 <= 1'b1;
               ddr_intf.A11 <= 1'b1;
               ddr_intf.A10_AP <= 1'b0;
-              ddr_intf.A9_A0 <= cmd_out.req.phy_addr.col_addr[9:0];
+              ddr_intf.A9_A0 <= cmd_out.req.phy_addr.col_addr;
             end
             
             WRA: begin
@@ -289,8 +276,8 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
               ddr_intf.RAS_n_A16 <= 1'b0;
               ddr_intf.CAS_n_A15 <= 1'b0;
               ddr_intf.WE_n_A14 <= 1'b0;
-              ddr_intf.bg_addr <= cmd_out.req.phy_addr.bg_addr;
-              ddr_intf.ba_addr <= cmd_out.req.phy_addr.ba_addr;
+              ddr_intf.bg_addr <= ctrl_intf.mode_reg[18:17];
+              ddr_intf.ba_addr <= ctrl_intf.mode_reg[16:15];
               ddr_intf.A12_BC_n <= cmd_out.req.phy_addr.row_addr[12];
               ddr_intf.A17 <= cmd_out.req.phy_addr.row_addr[13];
               ddr_intf.A13 <= cmd_out.req.phy_addr.row_addr[13];
@@ -404,16 +391,17 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
   capture operating parameters of the MR at initialization
   */
   
-  always @(ctrl_intf.mrs_rdy)
-    begin
-      case (ctrl_intf.mode_reg [17:15])
+  always @(ctrl_intf.mrs_rdy) begin
+    case (ctrl_intf.mode_reg [17:15])
      //MR0
      // Supported CL for DDR4 1600 9,10,11,12
      3'b000: begin
        if (int'(ctrl_intf.mode_reg[6:3]) < 4)
             ctrl_intf.CL= 9 + int'(ctrl_intf.mode_reg [6:3]);
+       
           else
              ctrl_intf.CL = 9;
+       //$display("%d", ctrl_intf.CL); 
         //Get BL
          if (ctrl_intf.mode_reg[1:0] === 2'b10)
             ctrl_intf.BL = 4;
@@ -454,14 +442,17 @@ module ctrl_cmds(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_interface 
 
   //find an algorithm
 
- function automatic mem_addr_type address_decode(logic[39:0] logical_addr, output mem_addr_type phy_addr);
-   		 phy_addr.bg_addr =  logical_addr[1:0];
-   		 phy_addr.ba_addr =  logical_addr[3:2];
- 	     phy_addr.row_addr = logical_addr[17:4];
-  		 phy_addr.col_addr = logical_addr[27:18];
-    return phy_addr; 
+  function automatic mem_addr_type address_decode(logic[39:0] physical_addr, 
+                                                  output mem_addr_type mem_addr);
+      mem_addr.bg_addr =  physical_addr[1:0];
+   	  mem_addr.ba_addr =  physical_addr[3:2];
+ 	  mem_addr.row_addr = physical_addr[17:4];
+  	  mem_addr.col_addr = physical_addr[27:18];
+      
+    return mem_addr; 
+    
    endfunction
-
-
-
+  
+  
+  
 endmodule
