@@ -23,13 +23,13 @@ class monitor;
       @(posedge tb_intf.cmd_rdy); 
       repeat(2)@(posedge ddr_intf.CK_t);
       gen_req = new();
-      gen_req.log_addr = `MONITOR.monitor_cb.log_addr;
+      gen_req.phy_addr = `MONITOR.monitor_cb.phy_addr;
       gen_req.request = `MONITOR.monitor_cb.request;
       gen_req.BL = `MONITOR.monitor_cb.BL;
       gen_req.wr_data = `MONITOR.monitor_cb.wr_data;  
       // $display("Host Address:%0h\nRequest:%0h\nWrite Data:%0h\n", gen_req.log_addr, gen_req.request, gen_req.wr_data); 
       
-      if(gen_req.log_addr && gen_req.request && gen_req.wr_data) begin 
+      if(gen_req.phy_addr && gen_req.request && gen_req.wr_data) begin 
         mon2sb.put(gen_req); 
         no_trans++; 
       end 
