@@ -7,7 +7,7 @@ interface tb_interface(ddr_interface ddr_intf, ctrl_interface ctrl_intf);
   write_data rd_data; 
   write_data wr_data;
   bit[63:0] dimm_data;
-  host_address log_addr; 
+  host_address phy_addr; 
   logic[2:0] request; 
   bit[2:0] CL; 
   bit[2:0] BL; 
@@ -26,10 +26,10 @@ interface tb_interface(ddr_interface ddr_intf, ctrl_interface ctrl_intf);
   
   //assign cmd_rdy = ctrl_intf.act_idle; 
    
- /* clocking dut_cb@(posedge ddr_intf.CK_t); 
+  clocking dut_cb@(posedge ddr_intf.CK_t); 
     input wr_data; 
     input request;
-    input log_addr; 
+    input phy_addr; 
     input CL; 
     input AL; 
     input BL; 
@@ -40,13 +40,13 @@ interface tb_interface(ddr_interface ddr_intf, ctrl_interface ctrl_intf);
     input rd_data; 
     input rd_start; 
   endclocking
-  */
+  
   
   clocking driver_cb@(negedge ddr_intf.CK_t); 
     input rd_data; 
     output wr_data; 
     output request; 
-    output log_addr; 
+    output phy_addr; 
     output CL; 
     output AL;
     output BL; 
@@ -62,7 +62,7 @@ interface tb_interface(ddr_interface ddr_intf, ctrl_interface ctrl_intf);
   clocking monitor_cb@(negedge ddr_intf.CK_t);  
     input wr_data; 
     input request;
-    input log_addr; 
+    input phy_addr; 
     input CL; 
     input AL; 
     input BL; 
@@ -78,9 +78,7 @@ interface tb_interface(ddr_interface ddr_intf, ctrl_interface ctrl_intf);
   modport MONITOR(clocking monitor_cb); 
   
   modport DRIVER(clocking driver_cb); 
-  
- 
-  
+   
 endinterface 
 
 
