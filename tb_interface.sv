@@ -23,25 +23,6 @@ interface tb_interface(ddr_interface ddr_intf, ctrl_interface ctrl_intf);
   logic[2:0] dimm_req;
   event config_done;
   
-  
-  //assign cmd_rdy = ctrl_intf.act_idle; 
-   
-  clocking dut_cb@(posedge ddr_intf.CK_t); 
-    input wr_data; 
-    input request;
-    input phy_addr; 
-    input CL; 
-    input AL; 
-    input BL; 
-    input CWL; 
-    input RD_PRE; 
-    input WR_PRE; 
-    input mrs_update;
-    input rd_data; 
-    input rd_start; 
-  endclocking
-  
-  
   clocking driver_cb@(negedge ddr_intf.CK_t); 
     input rd_data; 
     output wr_data; 
