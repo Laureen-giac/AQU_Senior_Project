@@ -3,7 +3,7 @@
 class host_req;
 
   rand write_data wr_data; 
-  rand host_address log_addr; 
+  rand host_address phy_addr; 
   rand bit[2:0] request; 
   randc bit[2:0] CL; 
   randc bit[2:0] BL; 
@@ -16,7 +16,7 @@ class host_req;
   function void display(); 
     $display("From System Host"); 
     $display("Host Request is a %d", request); 
-    $display("Memory Address is %h", log_addr); 
+    $display("Memory Address is %h", phy_addr); 
     $display("Memory Data is %h", wr_data); 
     $display("Operating Parameters are:"); 
     $display("BL:%b\tCL:%b\tRD_PRE:%d\tWR_PRE%d\t", BL, CL, RD_PRE, WR_PRE);
