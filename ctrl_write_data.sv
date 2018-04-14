@@ -32,7 +32,7 @@ module ctrl_write_data(ctrl_interface ctrl_intf, ddr_interface ddr_intf, tb_inte
     // $display("the  wr_out is %h ",wr_out );
     end
      
-  always_ff @(ddr_intf.CK_t)
+  always@(ddr_intf.CK_t)
      begin
         if ((ctrl_intf.wr_rdy))
           begin
