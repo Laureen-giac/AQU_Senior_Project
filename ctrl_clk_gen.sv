@@ -3,7 +3,7 @@
 module ctrl_clk_gen(ddr_interface ddr_intf); 
 
  timeunit 10ps ; 
- timeprecision 100ps ;
+ timeprecision 1ps ;
 
  
   //differential clock 
