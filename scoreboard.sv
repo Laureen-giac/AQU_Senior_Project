@@ -61,7 +61,7 @@ class scoreboard;
       if(gen2sb.num() != 0 ) begin 
         gen2sb.get(gen_req);
         if(gen_req.request==WR_R) begin
-          index = gen_req.log_addr[27:0]; 
+          index = gen_req.phy_addr[27:0]; 
           if(ctrl_intf.BL == 8)
             dimm[index] = gen_req.wr_data;
           else 
@@ -69,7 +69,7 @@ class scoreboard;
           no_trans++; 
         end 
         else if(gen_req.request == RD_R) begin 
-          rd_addr_store.push_back(gen_req.log_addr[27:0]); 
+          rd_addr_store.push_back(gen_req.phy_addr[27:0]); 
           no_trans++; 
          end 
       end 
