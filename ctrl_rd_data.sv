@@ -5,7 +5,7 @@ module ctrl_rd_data(ddr_interface ddr_intf, ctrl_interface ctrl_intf);
   
   logic rd_start_d;
   
-  always_ff@(posedge ddr_intf.CK_t)begin
+  always@(posedge ddr_intf.CK_t)begin
     if(rd_start_d)
       fork
         set_differential_dqs(ddr_intf.data_out);
