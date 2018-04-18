@@ -210,12 +210,12 @@ endproperty
     $display("tREFI: REF to REF delay FAILED at %0tns", $time); 
        
   
-  assert property(tCCD_P) 
+  assert property(tCCDR_P) 
     $display("tCCD: Read:: RAS to CAS delay SUCCESS at %0tns", $time); 
     else
       $display("tCCD: Read:: RAS to CAS delay FAILED at %0tns", $time); 
     
-  assert property(tCCDR_P) 
+  assert property(tCCDW_P) 
     $display("tCCD: Write:: RAS to CAS delay SUCCESS at %0tns", $time); 
    else
      $display("tCCD: Write:: RAS to CAS delay FAILED at %0tns", $time); 
