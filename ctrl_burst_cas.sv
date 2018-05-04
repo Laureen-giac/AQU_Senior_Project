@@ -95,7 +95,7 @@ module ctrl_burst_cas(ctrl_interface ctrl_intf, ddr_interface ddr_intf);
                                      .req(ctrl_intf.req),
                                      .extra_wait(extra_wait));
                       prev_req <= request;
-                      if(rtw)
+                     if(!rtw)
                         begin
                           cas_next_state <= CAS_EXTRA_WAIT;
                         end 
