@@ -9,8 +9,9 @@
 `include "ctrl_write_data.sv"
 `include "dimm_model.sv"
 `include "ctrl_rd_data.sv"
-//`include "ctrl_update.sv"
-//`include "mem_check.sv"
+`include "ddr_interface.sv"
+`include "tb_interface.sv"
+`include "ctrl_interface.sv"
 `include "assertions.sv"
 
 
