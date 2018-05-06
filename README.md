@@ -30,8 +30,8 @@ Download and Copy project files to desired working directory.
 
 ## Authors
 
-* **Laureen Giacaman**  - (https://github.com/Laureen-giac)
-* **Diana Atiyeh** - (https://github.com/Diana955)
+* **Laureen Giacaman**  - [Laureen-giac](https://github.com/Laureen-giac)
+* **Diana Atiyeh** - [Diana955](https://github.com/Diana955)
 
 ## Acknowledgments
 
