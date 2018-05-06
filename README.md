@@ -15,31 +15,23 @@ Synpsys VCS, Cadence Xcelium/Incisive, Mentor Questa.
 
 Download and Copy project files to desired working directory. 
 	
-## Running the tests
+## Compile/Simulation 
 
-1. Setup project environment on EDA Playground 
-	a. Open www.edaplayground.com 
-	b. Create a new empty playground. 
-	c. Upload all project files. 
-	
+#### EDA Playground:
+1. Open www.edaplayground.com 
+2. Create a new empty playground. 
+3. Upload all project files. 
+4. Select Synopsys VCS as Simulator 
+5. Use default Compile/run options: -timescale=1ns/1ns +vcs+flush+all +warn=all -sverilog
 
-2. Compile/Run Simulation
-	a. Select Synopsys VCS as Simulator 
-	b. Use default Compile/run options: -timescale=1ns/1ns +vcs+flush+all +warn=all -sverilog
-	
-3. To run the project with Cadence Xcelium: 
-	a. Use the following Compile/run options: xrun tb_top.sv -sv +access-rw 
+#### Cadence Incisive Simulator:
+ 1. Use the following Compile/run options: xrun tb_top.sv -sv +access-rw 
 
 
 ## Authors
 
 * **Laureen Giacaman**  - [PurpleBooth](https://github.com/Laureen-giac)
 * **Diana Atiyeh** -[PurpleBooth] (https://github.com/Diana955)
-
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
 ## Acknowledgments
 
