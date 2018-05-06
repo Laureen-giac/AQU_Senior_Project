@@ -30,8 +30,8 @@ Download and Copy project files to desired working directory.
 
 ## Authors
 
-* **Laureen Giacaman**  - [PurpleBooth](https://github.com/Laureen-giac)
-* **Diana Atiyeh** -[PurpleBooth] (https://github.com/Diana955)
+* **Laureen Giacaman**  - (https://github.com/Laureen-giac)
+* **Diana Atiyeh** - (https://github.com/Diana955)
 
 ## Acknowledgments
 
